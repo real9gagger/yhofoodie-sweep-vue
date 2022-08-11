@@ -25,7 +25,7 @@ export default {
     }
 	window.onresize();
 	
-	this.$yhoajax("member_app_login", {username: "18249941545", password: "a12345678", uuid: "866982030752119", gpush_token: "1"})
+	this.$yhoAjax("member_app_login", {username: "18249941545", password: "a12345678", uuid: "866982030752119", gpush_token: "1"})
   }
 }
 </script>

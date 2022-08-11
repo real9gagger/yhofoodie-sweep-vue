@@ -6,7 +6,7 @@ import qs from 'qs'
 
 export default {
 	install: function(vue){
-		vue.prototype.$yhoajax = function(api_name, post_data) {
+		vue.prototype.$yhoAjax = function(api_name, post_data) {
 			if(!post_data){
 				post_data = {};
 			}
