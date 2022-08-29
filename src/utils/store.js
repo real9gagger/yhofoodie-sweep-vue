@@ -1,17 +1,28 @@
 function yhoStore(){
-	this.NAME_PREFIX = ("yhowaiter_");
+	this.NAME_PREFIX = ("yhofoodie_");
 }
 
 yhoStore.prototype.get = function(name, defval){
 	return localStorage.getItem(this.NAME_PREFIX + name) || defval;
 }
 
-yhoStore.prototype.set = function(name, value){
-	return localStorage.setItem(this.NAME_PREFIX + name, value);
-}
-
-yhoStore.prototype.remove = function(name){
-	return localStorage.removeItem(this.NAME_PREFIX + name);
+yhoStore.prototype.getObject = function(name, remove){
+	let keyname = this.NAME_PREFIX + name;
+	let jsonStr = localStorage.getItem(keyname);
+	
+	if(remove){
+		localStorage.removeItem(keyname);
+	}
+	
+	if(jsonStr){
+		try {
+			return JSON.parse(jsonStr);
+		} catch(ex) {
+			console.error(ex);
+		}
+	}
+	
+	return null;
 }
 
 yhoStore.prototype.pick = function(name, defval){
@@ -21,8 +32,20 @@ yhoStore.prototype.pick = function(name, defval){
 	return (value || defval);
 }
 
-yhoStore.prototype.clear = function(){
-	return localStorage.clear();
+yhoStore.prototype.set = function(name, value){
+	localStorage.setItem(this.NAME_PREFIX + name, value);
 }
 
-export default new yhoStore
+yhoStore.prototype.setObject = function(name, obj){
+	localStorage.setItem(this.NAME_PREFIX + name, JSON.stringify(obj));
+}
+
+yhoStore.prototype.remove = function(name){
+	localStorage.removeItem(this.NAME_PREFIX + name);
+}
+
+yhoStore.prototype.clear = function(){
+	localStorage.clear();
+}
+
+export default (new yhoStore())

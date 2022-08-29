@@ -11,7 +11,7 @@ export default {
 				post_data = {};
 			}
 			return axios({
-				url: "/yhoapi?ver=11&mo=s2&a=" + api_name,
+				url: "/yhoapi?ver=11&mo=u&a=" + api_name,
 				headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" },
 				method: "POST",
 				data: qs.stringify(post_data)

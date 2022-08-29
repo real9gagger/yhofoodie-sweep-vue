@@ -4,19 +4,15 @@ let routerList = [
 	{
 		path: "/",
 		name: "主页",
-		component: () => import("@/views/home"),
+		component: () => import("@/views/home/index"),
 		meta: {
 			keepAlive: false
 		}
 	},
 	{
-	  path: "*",
-	  redirect: "/e404",
-	},
-	{
-		path: "/e404",
-		name: "登录页",
-		component: () => import("@/views/error/http404"),
+		path: "/select",
+		name: "选菜",
+		component: () => import("@/views/order/select"),
 		meta: {
 			keepAlive: false
 		}
@@ -28,6 +24,18 @@ let routerList = [
 		meta: {
 			keepAlive: false
 		}
+	},
+	{
+		path: "/e404",
+		name: "找不到页面",
+		component: () => import("@/views/error/http404"),
+		meta: {
+			keepAlive: false
+		}
+	},
+	{
+	  path: "*",
+	  redirect: "/e404",
 	}
 ]
 

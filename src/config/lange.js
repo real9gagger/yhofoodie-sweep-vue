@@ -40,3 +40,7 @@ export default {
 		} //本地语言
 	}
 }
+
+export function getLangeType(){
+	return ll_type;
+}

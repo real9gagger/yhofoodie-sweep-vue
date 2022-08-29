@@ -1,4 +1,4 @@
-# yhofoodie-waiter-vue
+# yhofoodie-sweep-vue
 
 ## Project setup
 ```
