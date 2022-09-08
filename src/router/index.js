@@ -6,13 +6,21 @@ let routerList = [
 		name: "主页",
 		component: () => import("@/views/home/index"),
 		meta: {
-			keepAlive: false
+			keepAlive: true
 		}
 	},
 	{
 		path: "/select",
 		name: "选菜",
 		component: () => import("@/views/order/select"),
+		meta: {
+			keepAlive: true
+		}
+	},
+	{
+		path: "/details",
+		name: "菜品详情",
+		component: () => import("@/views/order/details"),
 		meta: {
 			keepAlive: false
 		}

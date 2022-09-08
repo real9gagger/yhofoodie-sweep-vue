@@ -48,4 +48,18 @@ yhoStore.prototype.clear = function(){
 	localStorage.clear();
 }
 
+yhoStore.prototype.onceObject = function(name, obj){
+	if((typeof obj) === "undefined"){
+		let jsonStr = sessionStorage.getItem(this.NAME_PREFIX + name);
+		if(jsonStr){
+			return JSON.parse(jsonStr);
+		}
+	} else if (obj === null){
+		sessionStorage.removeItem(this.NAME_PREFIX + name);
+	} else {
+		sessionStorage.setItem(this.NAME_PREFIX + name, JSON.stringify(obj));
+	}
+	return null;
+}
+
 export default (new yhoStore())

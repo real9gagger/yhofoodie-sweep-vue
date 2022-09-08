@@ -47,6 +47,9 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 
 .us-n{user-select:none}
 
+.tp-dim:active{background-image:linear-gradient(0deg,rgba(0,0,0,0.1) 0px,rgba(0,0,0,0.1) 100%)}
+.tp-dim-less:active{background-image:linear-gradient(0deg,rgba(0,0,0,0.0) 0px,rgba(0,0,0,0.1) 1px,rgba(0,0,0,0.1) 100%)}
+
 /***************************************************** HTML基准字体大小 100px **************************************************************/
 .fs-0{font-size:0}
 .fs-12px{font-size:12px}
@@ -224,6 +227,8 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 
 .wh-a{width:auto;height:auto}
 .wh-f{width:100%;height:100%}
+.wh-same-wi{position:relative}/*让盒子的高度等于宽度，【注：不是让宽度等于高度，而是让高度等于宽度】*/
+.wh-same-wi:before{content:"";display:block;width:100%;padding-top:100%;}
 
 .of-h{overflow:hidden}
 .of-a{overflow:auto}
@@ -238,6 +243,7 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 .of-vs{overflow-x:hidden;overflow-y:auto} /* vertical scrollable */
 .of-hs{overflow-x:auto;overflow-y:hidden} /* horizontal scrollable */
 .of-te{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}/* 文本溢出显示省略号 */
+.of-no-sb::-webkit-scrollbar{display:none}
 
 .fl-n{float:none}
 .fl-r{float:right}
@@ -321,6 +327,7 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 
 .bd-n{border:0px none transparent}
 .bd-0{border:0px solid transparent}
+.bd-f0{border:1px solid #f0f0f0}
 .bd-cc{border:1px solid #ccc}
 .bd-aa{border:1px solid #aaa}
 .bd-66{border:1px solid #666}
