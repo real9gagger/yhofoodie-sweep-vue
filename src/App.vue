@@ -8,22 +8,25 @@
 </template>
 
 <script>
-//import HelloWorld from './components/HelloWorld.vue'
 export default {
   name: 'App',
-  components: {
-    /* HelloWorld */
-  },
+  components: {},
   mounted() {
 	if(!window.onresize){
 		window.onresize = function(){
-			//已屏幕 360 x 640 的字体 20 像素为基准
-			let fs_px1 = Math.log2(window.innerWidth / 360) * 20;
+			//【手机端】以屏幕 360x640 的字体 20 像素为基准，【电脑端】以 1366x768 为基准
+			let fs_px1 = 0;
+			if (navigator.userAgent.lastIndexOf("Mobile") >= 0){
+				fs_px1 = (window.innerWidth / 360) * 10;
+			} else {
+				fs_px1 = (window.innerWidth / 1366) * 20;
+			}
 			let fs_px2 = Math.round(fs_px1 / 10) * 10;//让它是 10 的倍数：
 			if(fs_px2 < 20){
 				fs_px2 = 20;
 			}
 		    document.documentElement.style.fontSize = (fs_px2 + "px");
+			document.body.style.height = (window.innerHeight + "px");
 		}
 	}
 	window.onresize();
@@ -32,7 +35,7 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
 #app {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -40,7 +43,8 @@ export default {
   font-size: 0.8rem;
   color: #000;
   background-color: #fff;
-  height: 100vh;
+  height: 100%;
   overflow: auto;
+  user-select: none;
 }
 </style>

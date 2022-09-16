@@ -9,18 +9,18 @@ let langPack = require(`@/languages/${ll_type}.json`);
 
 export default {
 	install: function(vue){
-		vue.prototype.$yhoI18n = function(code, args){ //args 数组，如 "我现在有$[1]元，收入 $[2] 元" ，索引从 1 开始。
+		vue.prototype.$yhoI18n = function(code, args){ //args 数组，如 "我现在有$[0]元，收入 $[1] 元" ，索引从 0 开始。
 			if(!code) {
 				return "";
 			}else if(!args){
 				return (langPack[code] || "");
 			}else if(!Array.isArray(args)){
-				return (langPack[code] || "").replace(/\$\[1\]/g, args.toString());
+				return (langPack[code] || "").replace(/\$\[0\]/g, args.toString());
 			}else{
 				return (langPack[code] || "").replace(/\$\[\d+\]/g, function(mm){
 					let nth = +mm.substr(2, mm.length - 3);
-					if(nth >= 1 && nth <= args.length){
-						return args[nth - 1];
+					if(nth >= 0 && nth < args.length){
+						return args[nth];
 					} else {
 						return mm;
 					}

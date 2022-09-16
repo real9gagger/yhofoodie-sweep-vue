@@ -99,11 +99,15 @@ function onImageLoadingError(){
 }
 
 //保留两位小数。避免出现 (0.575).toFixed(2) 等于 0.57 的结果
-function toFixed2(str, num){
-	var num_str = (str || 0).toString();
-	var d_fixed = ((typeof num) !== "number" ? 2 : Math.abs(num || 0)); //保留多少位小数
-	var num_arr = num_str.split(".");
-	var dec_num = (num_arr[1] ? num_arr[1].length : 0);//原数中有多少位小数位数 90.8976
+function toFixed2(str){
+	if(!str){
+		return "0.00";
+	}
+	
+	let num_str = str.toString();
+	let d_fixed = 2; //保留多少位小数
+	let num_arr = num_str.split(".");
+	let dec_num = (num_arr[1] ? num_arr[1].length : 0);//原数中有多少位小数位数 90.8976
 	
 	if(d_fixed < dec_num){
 		num_str = ( num_arr[0] 
@@ -123,6 +127,13 @@ function toFixed2(str, num){
 	}else{//有小数点
 		return (num_str + ".00000000000000000000000000000000".substr(1, d_fixed - dec_num));
 	}
+}
+
+// 最多保留 2 位小数！返回的是 number 类型，而 tofixed 返回的字符串
+function mathRound2(num){
+	let real_num = (+num || 0);
+	let pows = 100; //默认 两位小数
+	return Math.round(real_num * pows) / pows;
 }
 
 //格式化日期
@@ -172,14 +183,13 @@ function addGoodsToGwc(fromElem, toElem) {
 	if(!fromElem || !toElem) return;
 	
 	var $toElem = $(toElem);
-	
 	var fromOffset = $(fromElem).offset();
 	var toOffset = $toElem.offset();
 	var startLeft = fromOffset.left;
 	var startTop = fromOffset.top;
 	var endLeft = toOffset.left + $toElem.width() / 2;
 	var endTop = toOffset.top;
-	var outerHTML = `<div class="gwc-point-outer" style="left:${startLeft}px;top:${startTop}px"><div class="gwc-point-inner"></div></div>`;
+	var outerHTML = `<div class="gwc-point-outer" style="left:${startLeft}px;top:${startTop}px"><div class="gwc-point-inner">+1</div></div>`;
 	var $pointOuter = $(outerHTML).appendTo(document.body);
 
 	setTimeout(function(){
@@ -192,5 +202,13 @@ function addGoodsToGwc(fromElem, toElem) {
 		.css("transform", `translate3d(0,${endTop - startTop}px,0)`)
 		.children().css("transform", `translate3d(${endLeft - startLeft}px,0,0)`);
 	}, 50);
-	
+}
+
+//购物车菜品ID，要保证唯一性
+function newCartID(){
+	let randNum = Math.floor(Math.random() * 1000).toString();
+	if(randNum < 1000){
+		randNum = "00000000".substring(0, 3 - randNum.length) + randNum; //开头补足0
+	}
+	return (Date.now().toString()) + randNum; //16位数字
 }

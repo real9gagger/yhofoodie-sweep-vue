@@ -22,6 +22,22 @@ export default {
 					return {msg: "无响应数据", status: 0};
 				}
 			});
+		};
+		
+		vue.prototype.$isEmpty = function(arg0){
+			if(!arg0){
+				return true;
+			}
+			let type = (typeof arg0);
+			if(type === "object"){
+				for(let ix in arg0){
+					return false;
+				}
+				return true;
+			}else if(type === "string"){
+				return (arg0 == 0);
+			}
+			return false;
 		}
 	}
 }

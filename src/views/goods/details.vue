@@ -82,7 +82,7 @@
 			</div>
 			<div class="details-box-item" v-if="goodsInfo.goods_material">
 				<p class="fw-b">商品描述</p>
-				<p class="ws-w mg-t-rem5 tc-66">{{goodsInfo.goods_material}}</p>
+				<p class="ws-w mg-t-rem5 tc-66" v-html="goodsInfo.goods_material">{{goodsInfo.goods_material}}</p>
 			</div>
 			<div class="details-box-item" v-if="recommendList && recommendList.length">
 				<p class="fs-1rem fw-b tc-00">推荐</p>
@@ -252,14 +252,14 @@
 		width: 1em;
 		height: 1em;
 		margin-right: 5px;
-		fill: #fd5749;
+		fill: $appMainColor;
 	}
 	
 	.details-svg-icon3{
 		display: inline-block;
 		width: 1.6rem;
 		height: 1.6rem;
-		fill: #fd5749;
+		fill: $appMainColor;
 	}
 	
 	.details-food-tag{

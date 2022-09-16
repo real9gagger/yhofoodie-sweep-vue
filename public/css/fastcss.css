@@ -1,5 +1,6 @@
 /****************** 通用CSS、快速布局 *******************/
 *{box-sizing:border-box}
+html{overflow:hidden}
 body{margin:0;-webkit-tap-highlight-color:transparent;-webkit-overflow-scrolling:touch}
 ul,ol,li,p,pre,h1,h2,h3,h4,h5,h6{margin:0;padding:0}
 a{text-decoration:none;cursor:pointer}
@@ -52,6 +53,7 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 
 /***************************************************** HTML基准字体大小 100px **************************************************************/
 .fs-0{font-size:0}
+.fs-10px{font-size:10px}
 .fs-12px{font-size:12px}
 .fs-rem5{font-size:0.5rem}
 .fs-rem6{font-size:0.6rem}
@@ -117,6 +119,7 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 
 .va-m{vertical-align:middle}
 .va-t{vertical-align:top}
+.va-tt{vertical-align:text-top}
 
 .cs-d{cursor:default}
 .cs-p{cursor:pointer}
@@ -199,6 +202,18 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 .hi-max-n{max-height:none}
 .hi-max-0{max-height:0;overflow:hidden}
 .hi-max-s{max-height:100vh} /* stretch */
+.hi-1rem{height:1rem}
+.hi-1rem2{height:1.2rem}
+.hi-1rem5{height:1.5rem}
+.hi-2rem{height:2rem}
+.hi-3rem{height:3rem}
+.hi-4rem{height:4rem}
+.hi-5rem{height:5rem}
+.hi-6rem{height:6rem}
+.hi-7rem{height:7rem}
+.hi-8rem{height:8rem}
+.hi-9rem{height:9rem}
+.hi-10rem{height:10rem}
 
 .wi-0{width:0;overflow:hidden}
 .wi-f{width:100%}/* width full */
@@ -212,6 +227,18 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 .wi-max-n{max-width:none}
 .wi-max-0{max-width:0;overflow:hidden}
 .wi-max-s{max-width:100vw} /* stretch */
+.wi-1rem{width:1rem}
+.wi-1rem2{width:1.2rem}
+.wi-1rem5{width:1.5rem}
+.wi-2rem{width:2rem}
+.wi-3rem{width:3rem}
+.wi-4rem{width:4rem}
+.wi-5rem{width:5rem}
+.wi-6rem{width:6rem}
+.wi-7rem{width:7rem}
+.wi-8rem{width:8rem}
+.wi-9rem{width:9rem}
+.wi-10rem{width:10rem}
 .wi-col-1{width:8.333333%}
 .wi-col-2{width:16.666666%}
 .wi-col-3{width:25%}
@@ -229,6 +256,18 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 .wh-f{width:100%;height:100%}
 .wh-same-wi{position:relative}/*让盒子的高度等于宽度，【注：不是让宽度等于高度，而是让高度等于宽度】*/
 .wh-same-wi:before{content:"";display:block;width:100%;padding-top:100%;}
+.wh-1rem{width:1rem;height:1rem}
+.wh-1rem2{width:1.2rem;height:1.2rem}
+.wh-1rem5{width:1.5rem;height:1.5rem}
+.wh-2rem{width:2rem;height:2rem}
+.wh-3rem{width:3rem;height:3rem}
+.wh-4rem{width:4rem;height:4rem}
+.wh-5rem{width:5rem;height:5rem}
+.wh-6rem{width:6rem;height:6rem}
+.wh-7rem{width:7rem;height:7rem}
+.wh-8rem{width:8rem;height:8rem}
+.wh-9rem{width:9rem;height:9rem}
+.wh-10rem{width:10rem;height:10rem}
 
 .of-h{overflow:hidden}
 .of-a{overflow:auto}
@@ -250,6 +289,10 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 .fl-l{float:left}
 .fl-c::after{content:"";display:table;clear:both}/* float clear */
 
+.fi-mc{fill:var(--main-color)}
+.fi-99{fill:#999}
+.fi-cc{fill:#ccc}
+
 .fw-i{font-weight:inherit}
 .fw-b{font-weight:bold}
 .fw-n{font-weight:normal}
@@ -269,6 +312,10 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 .br-xx{border-radius:1000px}
 .br-ih{border-radius:inherit}
 .br-h{border-radius:50%} /* border-radius half*/
+.br-rem5{border-radius:0.5rem}
+.br-1rem{border-radius:1rem}
+.br-1rem5{border-radius:1.5rem}
+.br-2rem{border-radius:2rem}
 
 .bs-5-cc{box-shadow:0 0 5px 0 #ccc}
 .bs-10-cc{box-shadow:0 0 10px 0 #ccc}
@@ -369,7 +416,7 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 
 .ps-f{position:fixed;z-index:1}
 .ps-a{position:absolute;z-index:1}
-.ps-s{position:sticky;z-index:1}
+.ps-s{position:sticky;z-index:1;top:0}
 .ps-r{position:relative}
 
 .po-f{top:0;right:0;bottom:0;left:0} /* position full */

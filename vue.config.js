@@ -9,7 +9,12 @@ module.exports = {
   productionSourceMap: false,
   css: {
     // 忽略 CSS order 顺序警告
-    extract: { ignoreOrder: true }
+    extract: { ignoreOrder: true },
+	loaderOptions: {
+		sass:{
+		    additionalData:`@import "@/styles/variables.scss";`
+		}
+	}
   },
   // 配置转发代理
   devServer: {

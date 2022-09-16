@@ -12,7 +12,7 @@ let routerList = [
 	{
 		path: "/select",
 		name: "选菜",
-		component: () => import("@/views/order/select"),
+		component: () => import("@/views/goods/select"),
 		meta: {
 			keepAlive: true
 		}
@@ -20,7 +20,7 @@ let routerList = [
 	{
 		path: "/details",
 		name: "菜品详情",
-		component: () => import("@/views/order/details"),
+		component: () => import("@/views/goods/details"),
 		meta: {
 			keepAlive: false
 		}
@@ -29,6 +29,14 @@ let routerList = [
 		path: "/login",
 		name: "登录页",
 		component: () => import("@/views/login"),
+		meta: {
+			keepAlive: false
+		}
+	},
+	{
+		path: "/helpdesc",
+		name: "说明",
+		component: () => import("@/views/help/desc"),
 		meta: {
 			keepAlive: false
 		}

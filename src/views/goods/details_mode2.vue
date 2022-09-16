@@ -239,7 +239,7 @@
 		width: 1em;
 		height: 1em;
 		margin-right: 5px;
-		fill: #fd5749;
+		fill: #000;
 	}
 	
 	.details-svg-icon3{

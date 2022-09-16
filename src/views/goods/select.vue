@@ -1,9 +1,9 @@
 <template>
 	<div class="hi-f fx-c">
-		<div class="bg-mc fx-hc pd-lr-rem5" style="height:3rem">
+		<div class="fx-hc pd-lr-rem5" style="height:3rem">
 			<p class="fx-g1">扫码点餐</p>
 			<div class="ps-r op-5">
-				<input class="seelct-search-input" type="search" autocomplete="off" />
+				<input class="select-search-input" type="search" autocomplete="off" />
 				<a class="ps-a po-t-c" style="right:0.5rem">
 					<svg style="width:1rem;height:1rem"><use xlink:href="#icon_sousuo"></use></svg>
 				</a>
@@ -48,13 +48,14 @@
 										<p class="tc-99 fs-rem7">不在可售时间范围内</p>
 									</template>
 									<template v-else >
-										<p class="fx-hc pd-t-rem5">
-											<b class="tc-mc fx-g1">{{subitem.goods_price}}</b>
-											<a @click="addToCart($event)">
+										<p class="fx-hc">
+											<b class="tc-mc fx-g1 pd-t-rem5">{{subitem.goods_price}}</b>
+											<a v-if="!isMultipleChoice(subitem)" @click="addToCart1($event, subitem)" class="pd-t-rem5 pd-lr-rem5">
 												<!-- <svg><use xlink:href="#icon_jian1"></use></svg>
 												<span class="pd-lr-rem5">1</span> -->
 												<svg><use xlink:href="#icon_jia2"></use></svg>
 											</a>
+											<a v-else class="pd-t-rem5 pd-lr-rem5 ta-c" @click="showAlacarteBox($event, subitem)"><span class="bg-mc tc-ff dp-ib br-h fs-rem7" style="width:1.2rem;line-height:1.2rem">选</span></a>
 										</p>
 									</template>
 								</div>
@@ -64,18 +65,33 @@
 				</template>
 			</div>
 		</div>
-		<div class="bg-mc fx-r" style="height:3rem" id="bottomActionBox">
-			<div class="fx-g2 ps-r" style="background-color:#f90;">
-				
+		<div class="fx-r select-bottom-container">
+			<div class="fx-g1 ps-r">
+				<p class="select-cart-box fx-c fx-mc" @click="showChooseList()" :class="{nogoods: !chooseInfo.total_count}" id="myChooseCartBox">
+					<b class="dp-bk tc-ff fs-12px lh-1x">{{chooseInfo.total_count}}</b>
+					<svg><use xlink:href="#icon_gouwuche"></use></svg>
+				</p>
+				<p class="pd-l-4rem5 tc-ff wh-f fx-hc">
+					<span><i class="fs-12px">RM&nbsp;</i><b class="fs-1rem2">{{chooseInfo.total_price}}</b></span>
+				</p>
 			</div>
-			<div class="hi-f" style="width:3rem">
-				<svg class="wh-f" style="fill:#f90"><use xlink:href="#icon_spath"></use></svg>
+			<div class="hi-f wi-3rem">
+				<svg class="wh-f">
+					<defs>
+						<linearGradient id="spath_lg001" x1="0%" y1="100%" x2="100%" y2="100%">
+							<stop offset="0%" stop-color="#f88"></stop>
+							<stop offset="100%" stop-color="#f99"></stop>
+						</linearGradient>
+					</defs>
+					<use xlink:href="#icon_spath" fill="url(#spath_lg001)"></use>
+				</svg>
 			</div>
-			<div class="fx-g1 bg-mc ps-r">
-
-
+			<div class="fx-vc tc-ff pd-l-1rem fs-1rem wi-5rem" :class="{disabled: !chooseInfo.total_count}">
+				<span>选好了</span>
 			</div>
 		</div>
+		<goods-choose ref="chooseGBox" @change="onChooseChange"></goods-choose>
+		<alacarte-goods ref="alacarteGBox" @confirm="addToCart2"></alacarte-goods>
 	</div>
 </template>
 
@@ -84,6 +100,8 @@
 	import * as goodsHelper from '@/config/goods'
 	import constVars from '@/config/const'
 	import yhoStore from '@/utils/store'
+	import goodsChoose from './choose'
+	import alacarteGoods from './alacartegoods'
 	
 	export default {
 		name: "orderSelect",
@@ -91,28 +109,21 @@
 			return {
 				shopGoods: [],
 				cateIndex: 0,
-				goodsIndex: 0,
 				h4OffsetTops: [],
 				liOffsetTops: [],
 				isSearchingCate: false,
 				isDontHandleScroll: false,//是否处理滚动事件
 				lastLeftScrollTop: 0,
-				lastRightScrollTop: 0
+				lastRightScrollTop: 0,
+				chooseInfo: {}
 			}
 		},
 		computed:{
 			cateName(){
 				return (this.shopGoods[this.cateIndex].goods_cate_name || "");
-			},
-			/* chooseGoods(){
-				if (this.cateIndex >= 0 && this.cateIndex < this.shopGoods.length && this.goodsIndex >= 0) {
-					return (this.shopGoods[this.cateIndex].goods_list[this.goodsIndex]);
-				} else {
-					return null;
-				}
-			} */
+			}
 		},
-		components: {},
+		components: {goodsChoose,alacarteGoods},
 		mounted() {
 			var $mine = this;
 			goodsHelper.getShopGoods().then((goods) => {
@@ -134,6 +145,9 @@
 			});
 		},
 		methods:{
+			onChooseChange(data){
+				this.chooseInfo = data;
+			},
 			onCateClicked(idx){
 				this.cateIndex = idx;
 				this.isDontHandleScroll = true;
@@ -199,6 +213,17 @@
 				return "/image/waiter_happy.png"; //测试用
 				//return (constVars.OSS_IMG_PATH + path + constVars.OSS_IMG_SIZE_FOR_LIST);
 			},
+			isMultipleChoice(ginfos){
+				if(ginfos.is_package_goods){
+					return (ginfos.package_cate_list && ginfos.package_cate_list.length !== 0);
+				} else {
+					return (
+						ginfos.spec_list.length !== 0 ||
+						ginfos.taste_list.length !== 0 ||
+						ginfos.garnish_list.length !== 0
+					);
+				}
+			},
 			getOffsetTops(){
 				var $mine = this;
 				$mine.$nextTick(function(){
@@ -212,25 +237,38 @@
 					});
 				});
 			},
-			addToCart(evt){
+			addToCart1(evt, ginfos){//加入购物车
+				var $mine = this;
+				evt.preventDefault();
+				evt.stopPropagation();
+				var newGoods = $mine.$refs.alacarteGBox.formatGoods(ginfos);
+				$mine.$refs.chooseGBox.quicklyAdd(newGoods);
+				addGoodsToGwc(evt.currentTarget, "#myChooseCartBox");
+			},
+			addToCart2(ginfos){
+				this.$refs.chooseGBox.addGoods(ginfos);
+			},
+			showAlacarteBox(evt, ginfos){//显示点菜框
+				var $mine = this;
 				evt.preventDefault();
 				evt.stopPropagation();
 				
-				addGoodsToGwc(evt.currentTarget, "#bottomActionBox");
+				$mine.$refs.alacarteGBox.showMe(ginfos);
 			},
 			onGoodsScroll(evt){
-				var elem = (evt.target || evt.srcElement);
 				var $mine = this;
 				if($mine.isDontHandleScroll){
 					$mine.isDontHandleScroll = false;
 					return;
 				}
+				
 				if($mine.isSearchingCate){
 					return;
 				} else {
 					$mine.isSearchingCate = true;
 				}
 				
+				let elem = (evt.target || evt.srcElement);
 				let sTop = elem.scrollTop;
 				let cIndex = $mine.binarySearchIndex(0, $mine.h4OffsetTops.length - 1, sTop);
 				
@@ -250,6 +288,9 @@
 				}
 				
 				$mine.isSearchingCate = false;
+			},
+			showChooseList(){
+				this.$refs.chooseGBox.showList();
 			},
 			binarySearchIndex(start, end, threshold){ //折半查找。
 				//原理：倒序查找到第一个 offsetTop 小于 scrollTop 的元素所在索引。
@@ -293,7 +334,7 @@
 <style scoped="scoped" lang="scss">
 	.select-left-menu{
 		width: 5rem;
-		word-break: break-all;
+		word-break: break-word;
 		white-space: pre-wrap;
 		& > li{
 			padding: 0.5rem;
@@ -308,7 +349,7 @@
 					top: 0;
 					height: 100%;
 					width: 2px;
-					background-color: #fd5749;
+					background-color: $appMainColor;
 				}
 				i.inverse-corner{
 					display: block;
@@ -316,7 +357,7 @@
 					top: -14px;
 					bottom: -14px;
 					right: 0;
-					z-index: 9;
+					z-index: 1;
 					width: 14px;
 					background-color: inherit;
 					&::before,&::after{
@@ -341,7 +382,7 @@
 			svg{
 				width: 1em;
 				height: 1em;
-				fill: #fd5749;
+				fill: $appMainColor;
 				margin-right: 5px;
 				vertical-align: top;
 			}
@@ -370,7 +411,7 @@
 			svg{
 				height: 1.2rem;
 				width: 1.2rem;
-				fill: #fd5749;
+				fill: $appMainColor;
 				overflow: hidden;
 			}
 		}
@@ -396,7 +437,7 @@
 		font-weight: bold;
 	}
 	
-	.seelct-search-input{
+	.select-search-input{
 		border-radius: 1rem;
 		height: 2rem;
 		width: 2rem;
@@ -404,6 +445,39 @@
 		border: 0;
 		&.stretching{
 			width: 6rem;
+		}
+	}
+	
+	.select-bottom-container{
+		position: relative;
+		z-index: 10;
+		height: 3rem;
+		background-image: linear-gradient(90deg, #f88 60%, #f66 100%);
+		background-color: #fff;
+		
+		> :first-child{
+			background-image: linear-gradient(90deg, #f66 0%, #f88 100%)
+		}
+	}
+	
+	.select-cart-box{
+		position: absolute;
+		width: 3rem;
+		height: 3rem;
+		left: 0.75rem;
+		background-color: $appMainColor;
+		top: -0.5rem;
+		z-index: 1;
+		border: 4px solid #fff;
+		border-radius: 50%;
+		text-align: center;
+		> svg{
+			width:1.2rem;
+			height:1.2rem;
+			fill:#fff;
+		}
+		&.nogoods{
+			background-color: #f88;
 		}
 	}
 </style>
