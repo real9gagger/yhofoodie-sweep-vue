@@ -1,6 +1,7 @@
 <template>
   <div class="error404">
     <div class="error404-body-con">
+		<div class="tc-mc ta-c fs-1rem5 fw-b">ERROR</div>
 		<div class="fw-b ta-c">{{theUrl}}</div>
         <div class="error404-body-con-title">4<span>0</span>4</div>
         <div class="error404-body-con-message">
@@ -107,7 +108,7 @@ export default {
 		width: 100%;
 		left: 0;
 		bottom: 10px;
-		color: #aaa;
+		color: #f0f0f0;
 		font-size: 16px;
 	}
 }

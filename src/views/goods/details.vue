@@ -89,7 +89,7 @@
 				<ul class="details-recommend-ul fl-c">
 					<li v-for="item in recommendList" v-if="item.goods_thumb" :key="item.id" class="fl-l wi-col-6">
 						<div class="wh-same-wi">
-							<img class="ps-a po-tl-0 wh-f bd-f0" loading="lazy" style="border-radius:0.5rem" :src="ossImagePath + item.goods_thumb + ossImageSizeForList" />
+							<img class="ps-a po-tl-0 wh-f bd-f0 br-rem5" loading="lazy" :src="ossImagePath + item.goods_thumb + ossImageSizeForList" />
 						</div>
 						<div class="mg-t-rem5"><b>{{item.goods_name}}</b></div>
 						<div class="mg-t-rem3"><b class="tc-mc">{{item.goods_price}}</b></div>
@@ -113,7 +113,7 @@
 	import { getCateName, getSpecName, getTasteName, getSaleableTimeRange, getRecommendGoods } from '@/config/goods'
 
 	export default {
-		name: "orderDetails",
+		name: "goodsDetails",
 		data(){
 			return {
 				ossImagePath: constVars.OSS_IMG_PATH,

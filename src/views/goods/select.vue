@@ -12,23 +12,22 @@
 		<div class="fx-r fx-g1 of-h">
 			<div class="hi-f of-a bg-f0 ps-r of-no-sb" id="leftMenuContainer">
 				<ul class="select-left-menu">
-					<template v-for="item,index in shopGoods">
-						<li :class="{activing: index === cateIndex}" :key="item.id" @click="onCateClicked(index)">
-							<i class="vertical-bar"></i>
-							<svg v-if="item.id==0"><use xlink:href="#icon_taocan"></use></svg>
-							<svg v-else-if="item.id==1"><use xlink:href="#icon_tuijian"></use></svg>
-							<svg v-else-if="item.id==2"><use xlink:href="#icon_rexiao"></use></svg>
-							<span>{{item.goods_cate_name}}</span>
-							<i class="inverse-corner"><!--反向圆角--></i>
-						</li>
-					</template>
+					<li v-for="item,index in shopGoods" :class="{activing: index === cateIndex}" :key="item.cate_key" @click="onCateClicked(index)">
+						<i class="vertical-bar"></i>
+						<svg v-if="item.id==0"><use xlink:href="#icon_taocan"></use></svg>
+						<svg v-else-if="item.id==1"><use xlink:href="#icon_tuijian"></use></svg>
+						<svg v-else-if="item.id==2"><use xlink:href="#icon_rexiao"></use></svg>
+						<span>{{item.goods_cate_name}}</span>
+						<span class="cate-counts" v-if="chooseInfo[item.cate_key]">{{chooseInfo[item.cate_key]}}</span>
+						<i class="inverse-corner"><!--反向圆角--></i>
+					</li>
 				</ul>
 			</div>
 			<div class="fx-g1 of-a ps-r" id="rightMenuContainer" @scroll="onGoodsScroll">
-				<template v-for="item in shopGoods">
-					<h4 class="select-right-header" :key="`H4${item.id}`">{{item.goods_cate_name}}</h4>
-					<ul class="select-right-menu" :key="`UL${item.id}`">
-						<li v-for="subitem in item.goods_list" :key="`LI${item.id}X${subitem.id}`">
+				<template v-for="item,ix0 in shopGoods">
+					<h4 class="select-right-header" :key="item.id">{{item.goods_cate_name}}</h4>
+					<ul class="select-right-menu" :key="item.cate_key">
+						<li v-for="subitem,ix1 in item.goods_list" :key="subitem.goods_key">
 							<div class="fx-r" @click="onGoodsClicked($event, subitem)">
 								<div>
 									<img v-if="subitem.goods_thumb" :src="getGoodsPic(subitem.goods_thumb)" loading="lazy" onerror="onImageLoadingError()" />
@@ -42,21 +41,19 @@
 									<p class="pd-t-rem3 tc-99 fs-12px" v-if="subitem.goods_material && subitem.goods_material.length <= 30">
 										<span>{{subitem.goods_material}}</span>
 									</p>
-									<p class="fx-g1"><!--占位--></p>
+									<p class="fx-g1"><!--占位专用--></p>
 									<template v-if="!item.isAvailableCate || subitem.status != 1">
 										<p class="tc-99 fw-b fx-g1">{{subitem.goods_price}}</p>
 										<p class="tc-99 fs-rem7">不在可售时间范围内</p>
 									</template>
 									<template v-else >
-										<p class="fx-hc">
-											<b class="tc-mc fx-g1 pd-t-rem5">{{subitem.goods_price}}</b>
-											<a v-if="!isMultipleChoice(subitem)" @click="addToCart1($event, subitem)" class="pd-t-rem5 pd-lr-rem5">
-												<!-- <svg><use xlink:href="#icon_jian1"></use></svg>
-												<span class="pd-lr-rem5">1</span> -->
-												<svg><use xlink:href="#icon_jia2"></use></svg>
-											</a>
-											<a v-else class="pd-t-rem5 pd-lr-rem5 ta-c" @click="showAlacarteBox($event, subitem)"><span class="bg-mc tc-ff dp-ib br-h fs-rem7" style="width:1.2rem;line-height:1.2rem">选</span></a>
-										</p>
+										<counter-goods 
+											:goods-count="chooseInfo[item.cate_key + subitem.goods_key]" 
+											:cate-index="ix0"
+											:goods-index="ix1"
+											:multiple-choice="isMultipleChoice(subitem)" 
+											:counter-title="subitem.goods_price"
+											@change="addToCart"></counter-goods>
 									</template>
 								</div>
 							</div>
@@ -72,7 +69,7 @@
 					<svg><use xlink:href="#icon_gouwuche"></use></svg>
 				</p>
 				<p class="pd-l-4rem5 tc-ff wh-f fx-hc">
-					<span><i class="fs-12px">RM&nbsp;</i><b class="fs-1rem2">{{chooseInfo.total_price}}</b></span>
+					<span><i class="fs-12px">RM&nbsp;</i><b class="fs-1rem2">{{chooseInfo.total_price || "0.00"}}</b></span>
 				</p>
 			</div>
 			<div class="hi-f wi-3rem">
@@ -90,8 +87,8 @@
 				<span>选好了</span>
 			</div>
 		</div>
-		<goods-choose ref="chooseGBox" @change="onChooseChange"></goods-choose>
-		<alacarte-goods ref="alacarteGBox" @confirm="addToCart2"></alacarte-goods>
+		<choose-goods ref="chooseGBox" @change="onChooseChange"></choose-goods>
+		<alacarte-goods ref="alacarteGBox" @confirm="addToCart"></alacarte-goods>
 	</div>
 </template>
 
@@ -100,11 +97,12 @@
 	import * as goodsHelper from '@/config/goods'
 	import constVars from '@/config/const'
 	import yhoStore from '@/utils/store'
-	import goodsChoose from './choose'
+	import chooseGoods from './choose'
+	import counterGoods from './counter'
 	import alacarteGoods from './alacartegoods'
 	
 	export default {
-		name: "orderSelect",
+		name: "goodsSelect",
 		data(){
 			return {
 				shopGoods: [],
@@ -115,7 +113,8 @@
 				isDontHandleScroll: false,//是否处理滚动事件
 				lastLeftScrollTop: 0,
 				lastRightScrollTop: 0,
-				chooseInfo: {}
+				chooseInfo: {},//已选菜品一些信息
+				alacarteBtn: null,//点击的按钮
 			}
 		},
 		computed:{
@@ -123,11 +122,11 @@
 				return (this.shopGoods[this.cateIndex].goods_cate_name || "");
 			}
 		},
-		components: {goodsChoose,alacarteGoods},
+		components: {chooseGoods,alacarteGoods,counterGoods},
 		mounted() {
 			var $mine = this;
 			goodsHelper.getShopGoods().then((goods) => {
-				$mine.shopGoods = (goods.list || []);
+				$mine.shopGoods = Object.freeze(goods.list || []);
 				$mine.checkGoodsStatus();
 				$mine.getOffsetTops();
 				//console.log(goods);
@@ -177,7 +176,7 @@
 			},
 			checkGoodsStatus(){//检查菜品是否可售
 				let indexArr = [];
-
+				
 				goodsHelper.resetDateTime(); //必须调用！
 				
 				$.each(this.shopGoods, function(idx, cate){
@@ -213,7 +212,7 @@
 				return "/image/waiter_happy.png"; //测试用
 				//return (constVars.OSS_IMG_PATH + path + constVars.OSS_IMG_SIZE_FOR_LIST);
 			},
-			isMultipleChoice(ginfos){
+			isMultipleChoice(ginfos){//是否是多选
 				if(ginfos.is_package_goods){
 					return (ginfos.package_cate_list && ginfos.package_cate_list.length !== 0);
 				} else {
@@ -237,23 +236,24 @@
 					});
 				});
 			},
-			addToCart1(evt, ginfos){//加入购物车
-				var $mine = this;
-				evt.preventDefault();
-				evt.stopPropagation();
-				var newGoods = $mine.$refs.alacarteGBox.formatGoods(ginfos);
-				$mine.$refs.chooseGBox.quicklyAdd(newGoods);
-				addGoodsToGwc(evt.currentTarget, "#myChooseCartBox");
-			},
-			addToCart2(ginfos){
-				this.$refs.chooseGBox.addGoods(ginfos);
-			},
-			showAlacarteBox(evt, ginfos){//显示点菜框
-				var $mine = this;
-				evt.preventDefault();
-				evt.stopPropagation();
-				
-				$mine.$refs.alacarteGBox.showMe(ginfos);
+			addToCart(arg0){
+				if(arg0 && arg0.actionValue){
+					let ginfos = this.shopGoods[arg0.cateIndex].goods_list[arg0.goodsIndex];
+					if(!arg0.multipleChoice){//直接加入购物车，不弹窗
+						this.$refs.chooseGBox.addGoods(this.$refs.alacarteGBox.formatGoods(ginfos));
+						this.alacarteBtn = null;
+						throwGoodsToGwc(arg0.clickedElem, "#myChooseCartBox");
+					} else {//显示点菜框
+						this.alacarteBtn = arg0.clickedElem;
+						this.$refs.alacarteGBox.showMe(ginfos);
+					}
+				} else {//关闭弹窗后，确定加入购物车
+					if(arg0){
+						this.$refs.chooseGBox.addGoods(arg0);
+						setTimeout(window.throwGoodsToGwc, 300, this.alacarteBtn, "#myChooseCartBox");//等弹窗完全隐藏后，再执行动画
+					}
+					this.alacarteBtn = null;
+				}
 			},
 			onGoodsScroll(evt){
 				var $mine = this;
@@ -379,6 +379,17 @@
 					}
 				}
 			}
+			>.cate-counts{
+				display: inline-block;
+				background-color: $appMainColor;
+				color: #fff;
+				text-align: center;
+				margin-left: 0.25rem;
+				border-radius: 0.5rem;
+				min-width: 0.8rem;
+				line-height: 0.8rem;
+				font-size: 0.6rem;
+			}
 			svg{
 				width: 1em;
 				height: 1em;
@@ -400,8 +411,9 @@
 	.select-right-menu{
 		padding:0 0.5rem;
 		& > li{
-			padding-bottom: 1rem;
+			margin-bottom: 1rem;
 			word-break: break-all;
+			transition: transform 0.25s;
 			img {
 				width: 5rem;
 				height: 5rem;
@@ -413,6 +425,9 @@
 				width: 1.2rem;
 				fill: $appMainColor;
 				overflow: hidden;
+			}
+			&:active{
+				transform: scale(0.95);
 			}
 		}
 	}
@@ -468,7 +483,7 @@
 		background-color: $appMainColor;
 		top: -0.5rem;
 		z-index: 1;
-		border: 4px solid #fff;
+		border: 3px solid #fff;
 		border-radius: 50%;
 		text-align: center;
 		> svg{

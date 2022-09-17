@@ -5,7 +5,7 @@
 			<ul>
 				<li class="ps-s bg-ff pd-tb-1rem">
 					<div class="fx-r">
-						<div><img :src="goodsInfo.goods_thumb" class="wh-5rem br-rem5 bg-f0"/></div>
+						<div><img :src="getSrc(goodsInfo.goods_thumb)" class="wh-5rem br-rem5 bg-f0"/></div>
 						<div class="fx-g1 pd-l-rem5">
 							<p class="fw-b fx-r">
 								<span class="fx-g1 fs-1rem">{{goodsInfo.goods_name}}</span>
@@ -21,10 +21,10 @@
 									<template v-else-if="vvv.garnish_count === 1">{{vvv.garnish_id | toGarnishName}},</template>
 								</template>
 							</p>
-							<p class="fx-hc fs-1rem" @click="gotoDesc()">
-								<b class="tc-mc">{{goodsInfo.total_price}}</b>
-								<span class="fx-g1 ta-r tc-cc fs-rem8">计价方式</span>
-								<svg class="wh-1rem fi-cc mg-l-rem2"><use xlink:href="#icon_info1"></use></svg>
+							<p class="fx-hc" @click="gotoDesc()">
+								<b class="tc-mc fs-1rem">{{goodsInfo.total_price}}</b>
+								<span class="fx-g1 ta-r tc-cc">计价方式</span>
+								<svg class="wh-1em fi-cc mg-l-rem2"><use xlink:href="#icon_wenhao1"></use></svg>
 							</p>
 						</div>
 					</div>
@@ -67,7 +67,7 @@
 						<a v-for="vxo,ixo in goodsInfo.garnish_list" class="alacarte-goods-subitem"
 							@click="selectGkp(ixo, 3)"
 							:key="vxo.garnish_id"
-							:class="{checked: !!vxo.garnish_count}">
+							:class="{checked: !!vxo.garnish_count, editing: ixo === garnishIndex}">
 							<span>{{vxo.garnish_id | toGarnishName}}</span>
 							<span class="dp-bk">
 								<span class="tc-mc">+{{vxo.goods_price}}</span>
@@ -81,7 +81,7 @@
 					<div class="wi-col-10 btnbox bg-mc tc-ff" @click="addtoCart">加入购物车</div>
 				</li>
 			</ul>
-			<garnish-counts ref="garnishCountsBox" @confirm="recalcPrice"></garnish-counts>
+			<garnish-counts ref="garnishCountsBox" @confirm="garnishConfirm"></garnish-counts>
 		</div>
 	</transition>
 </template>
@@ -93,12 +93,13 @@
 	
 	/* 菜品点菜框 */
 	export default {
-		name: "orderAlacarteGoods",
+		name: "goodsAlacarteGoods",
 		data(){
 			return {
 				goodsInfo: null,
 				garnishCount: 0,
-				garnishLimit: 0
+				garnishLimit: 0,
+				garnishIndex: -1
 			}
 		},
 		filters:{
@@ -118,12 +119,6 @@
 				if(ginfos){
 					let newer = JSON.parse(JSON.stringify(ginfos)); //深度复制一份，防止污染原数据
 					let tprice = newer.goods_price;
-					
-					if(newer.goods_thumb){
-						newer.goods_thumb = (constVars.OSS_IMG_PATH + newer.goods_thumb + constVars.OSS_IMG_SIZE_FOR_LIST);
-					} else {
-						newer.goods_thumb = "/image/yhofoodie_icon.png";
-					}
 					
 					if(this.$isEmpty(newer.spec_list)){
 						newer.spec_list = null;
@@ -152,6 +147,14 @@
 					this.goodsInfo = newer;
 				} else {
 					this.goodsInfo = null;
+					this.$emit("confirm", null);
+				}
+			},
+			getSrc(url){
+				if(url){
+					return (constVars.OSS_IMG_PATH + url + constVars.OSS_IMG_SIZE_FOR_LIST);
+				} else {
+					return "/image/yhofoodie_icon.png";
 				}
 			},
 			changeCount(isAdded){//点菜数量
@@ -174,6 +177,7 @@
 					} else if(temp.maxcount == 1){//最大可选数量为1，不用弹出对话框
 						temp.garnish_count = 0;
 					} else {//弹出对话框
+						this.garnishIndex = arg0;
 						return !this.$refs.garnishCountsBox.showMe(temp, window.event.currentTarget, this.garnishLimit - this.garnishCount);
 					}
 				}
@@ -215,54 +219,75 @@
 			},
 			addtoCart(){//加入购物车
 				let newGoods = this.formatGoods(this.goodsInfo);
-				this.$emit("confirm", newGoods);
 				this.goodsInfo = null;
+				this.$emit("confirm", newGoods);
+			},
+			garnishConfirm(arg0){
+				if(arg0 >= 0){
+					this.recalcPrice();
+				}
+				this.garnishIndex = -1;
 			},
 			formatGoods(ginfos){
-				let keyArr = [`g${ginfos.id}`];
+				let keyString = `g${ginfos.id}`;
+				let goodsPrice = ginfos.goods_price;
 				let newGoods = {
 					"cart_id": newCartID(),
+					"cate_id": ginfos.goods_cate_id,
 					"goods_id": ginfos.id,
 					"goods_name": ginfos.goods_name,
-					"goods_pic": "",
-					"goods_price": ginfos.goods_price,
+					"goods_thumb": ginfos.goods_thumb,
 					"goods_count": ginfos.goods_count || 1,
 					"total_price": ginfos.total_price || ginfos.goods_price,
+					"cate_key": ginfos.cate_key,
+					"goods_key": ginfos.goods_key,
+					"is_package_goods": 0,
+					"goods_price": "", //规格+口味 总价
 					"spec_id": 0, //规格
 					"taste_id": 0, //口味
 					"garnish_ids": [], //配菜
-					"goods_key": "",
+					"garnish_total_price": "",//配菜 总价
+					"unit_price": "",//规格+口味+配菜 总价
+					"unique_key": "",//用来判断当前菜品是否已经添加过了
 					"goods_remarks": "" //备注
 				};
-				
-				if(!ginfos.goods_thumb){
-					newGoods.goods_pic = "/image/yhofoodie_icon.png";
-				}
+				let garnishTotalPrice = 0;
 				
 				if(ginfos.spec_index >= 0){
 					newGoods.spec_id = ginfos.spec_list[ginfos.spec_index].spec_id;
-					keyArr.push(`s${newGoods.spec_id}`);
+					goodsPrice = ginfos.spec_list[ginfos.spec_index].goods_price;
+					keyString += `s${newGoods.spec_id}`;
 				}
 				
 				if(ginfos.taste_index >= 0){
 					newGoods.taste_id = ginfos.taste_list[ginfos.taste_index].taste_id;
-					keyArr.push(`t${newGoods.taste_id}`);
+					goodsPrice = toFixed2(accAdd(goodsPrice, ginfos.taste_list[ginfos.taste_index].goods_price));
+					keyString += `t${newGoods.taste_id}`;
 				}
 				
-				for(let gobj of ginfos.garnish_list){
-					if(gobj.garnish_count){
-						newGoods.garnish_ids.push({
-							"garnish_id": gobj.garnish_id,
-							"garnish_price": gobj.goods_price,
-							"garnish_count": gobj.garnish_count
-						});
-						keyArr.push(`a${gobj.garnish_id}x${gobj.garnish_count}`);
+				if(ginfos.garnish_list){
+					for(let gobj of ginfos.garnish_list){
+						if(gobj.garnish_count){
+							newGoods.garnish_ids.push({
+								"garnish_id": gobj.garnish_id,
+								"garnish_price": gobj.goods_price,
+								"garnish_count": gobj.garnish_count
+							});
+							if(gobj.garnish_count > 1){
+								garnishTotalPrice = accAdd(garnishTotalPrice, accMul(gobj.goods_price, gobj.garnish_count));
+								keyString += `a${gobj.garnish_id}x${gobj.garnish_count}`;
+							} else {
+								garnishTotalPrice = accAdd(garnishTotalPrice, gobj.goods_price);
+								keyString += `a${gobj.garnish_id}`;
+							}
+						}
 					}
 				}
 				
-				newGoods.goods_key = keyArr.join("");
-				
-				console.log(newGoods)
+				newGoods.goods_price = goodsPrice;
+				newGoods.unit_price = accAdd(goodsPrice, garnishTotalPrice);
+				newGoods.garnish_total_price = garnishTotalPrice;
+				newGoods.unique_key = keyString;
 				
 				return newGoods;
 			}
@@ -312,6 +337,7 @@
 		text-align: center;
 		vertical-align: top;
 		min-width: 5rem;
+		transition: all 0.3s;
 		&.bigger{
 			padding: 0.8rem 1rem;
 			>.dp-bk{
@@ -321,6 +347,10 @@
 		&.checked{
 			border-color: $appMainColor;
 			background-color: rgba($mainColorR, $mainColorG, $mainColorB, 0.2);
+		}
+		&.editing{
+			border-color:#f90;
+			background-color: rgba(255, 153, 0, 0.2);
 		}
 	}
 	

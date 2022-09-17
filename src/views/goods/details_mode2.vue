@@ -95,7 +95,7 @@
 	import { getCateName, getSpecName, getTasteName } from '@/config/goods'
 	
 	export default {
-		name: "orderDetails",
+		name: "goodsDetailsMode2",
 		data(){
 			return {
 				ossImagePath: constVars.OSS_IMG_PATH,

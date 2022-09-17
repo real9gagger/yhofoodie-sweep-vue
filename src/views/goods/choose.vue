@@ -6,15 +6,15 @@
 				<li class="ps-s bg-ff">
 					<div class="fx-r hi-f fx-mc pd-lr-rem5 pd-t-rem5">
 						<b class="pd-tb-rem5 pd-l-rem5">已点菜品 {{cartGoodsCount}}</b>
-						<a class="pd-rem5"><svg class="choose-header-icon"><use xlink:href="#icon_clearall"></use></svg></a>
-						<b class="pd-l-rem5">用餐人数 1</b>
+						<a class="pd-rem5" @click="changeCount(0, 2)"><svg class="choose-header-icon"><use xlink:href="#icon_clearall"></use></svg></a>
+						<b class="pd-l-rem5">用餐人数 {{numberofDining}}</b>
 						<a class="pd-rem5"><svg class="choose-header-icon"><use xlink:href="#icon_edit1"></use></svg></a>
 						<a class="pd-rem5 fx-g1 ta-r" @click="showList()"><svg class="choose-header-icon"><use xlink:href="#icon_close1"></use></svg></a>
 					</div>
 				</li>
 				<li v-for="(item,index) in chooseList" :key="item.cart_id">
 					<div class="fx-r choose-goods-item">
-						<img :src="item.goods_pic" />
+						<img :src="getSrc(item.goods_thumb)" />
 						<div class="fx-g1 pd-l-rem5">
 							<p class="fw-b">{{item.goods_name}}</p>
 							<p class="tc-99">
@@ -38,7 +38,7 @@
 						</div>
 					</div>
 				</li>
-				<li>
+				<li class="ps-s po-b-0 bg-ff">
 					<div class="pd-rem5 ta-c">本店铺暂不支持打包</div>
 				</li>
 			</ul>
@@ -51,13 +51,14 @@
 	import { getSpecName, getTasteName, getGarnishName } from '@/config/goods'
 	
 	export default {
-		name: "orderChoose",
+		name: "goodsChoose",
 		data(){
 			return {
 				chooseList: [], //已选择的菜品
 				cartGoodsCount: 0,
 				cartTotalPrice: "0.00",
 				cartAddingTimerID: 0,
+				numberofDining: 1, //用餐人数
 				isShowChoose: false //是否显示已点
 			}
 		},
@@ -80,28 +81,53 @@
 					this.isShowChoose = !this.isShowChoose;
 				}
 			},
+			getSrc(url){
+				if(url){
+					return (constVars.OSS_IMG_PATH + url + constVars.OSS_IMG_SIZE_FOR_LIST);
+				} else {
+					return "/image/yhofoodie_icon.png";
+				}
+			},
 			recalcPrice(){//重新计算某些数据
 				let sum1 = 0;
 				let sum2 = 0;
+				let obj0 = {};
+				let key0 = ""; 
+				
 				for(let item of this.chooseList){
 					sum1 += item.goods_count;
 					sum2 = accAdd(sum2, item.total_price);
+					key0 = (item.cate_key + item.goods_key);
+					
+					if(!obj0[item.cate_key]){
+						obj0[item.cate_key] = item.goods_count;
+					} else {
+						obj0[item.cate_key] += item.goods_count;
+					}
+					
+					if(!obj0[key0]){
+						obj0[key0] = item.goods_count;
+					} else {
+						obj0[key0] += item.goods_count;
+					}
 				}
+				
 				this.cartGoodsCount = sum1;
 				this.cartTotalPrice = toFixed2(sum2);
 				
 				if(this.cartGoodsCount === 0){
 					this.isShowChoose = false;
 				}
-				this.$emit("change", {
-					total_price: this.cartTotalPrice,
-					total_count: this.cartGoodsCount
-				});
+				//console.log(obj0);
+				obj0.total_price = this.cartTotalPrice;
+				obj0.total_count = this.cartGoodsCount;
+
+				this.$emit("change", obj0);
 			},
-			checkGoods(ginfos){//判断菜品是否已被添加过了
+			checkGoods(gkey){//判断菜品是否已被添加过了
 				let nth = 0;
 				for(let item of this.chooseList){
-					if(item.goods_key === ginfos.goods_key){
+					if(item.unique_key === gkey){
 						return nth;
 					}
 					nth++;
@@ -109,60 +135,39 @@
 				return -1;
 			},
 			changeCount(nth, isAdds){
-				if(isAdds === 2){
-					this.chooseList.splice(0, this.chooseList.length);
+				if(isAdds === 2){//清空
+					this.chooseList.splice(0);//清空
 				} else {
-					let goodsItem = this.chooseList[nth];
-					if(isAdds === 1 || isAdds === 10){
-						goodsItem.goods_count++;
-						goodsItem.total_price = toFixed2(accMul(goodsItem.goods_price, goodsItem.goods_count));
+					let temp = this.chooseList[nth];
+					if(isAdds === 1 || isAdds === 3){
+						temp.goods_count++;
+						temp.total_price = toFixed2(accMul(temp.unit_price, temp.goods_count));
 					} else {
-						if(goodsItem.goods_count > 1){
-							goodsItem.goods_count--;
-							goodsItem.total_price = toFixed2(accMul(goodsItem.goods_price, goodsItem.goods_count));
-						} else {
+						if(temp.goods_count > 1){
+							temp.goods_count--;
+							temp.total_price = toFixed2(accMul(temp.unit_price, temp.goods_count));
+						} else {//删除某个菜品
 							this.chooseList.splice(nth, 1);
 						}
 					}
 				}
-				
-				if(isAdds < 10){
+				if(isAdds < 3){
 					this.recalcPrice();
 				}
 			},
-			quicklyAdd(ginfos){//没有规格/口味/配菜的菜品可以快速添加
+			addGoods(ginfos){//没有规格/口味/配菜的菜品可以快速添加
 				var $mine = this;
 
 				clearTimeout($mine.cartAddingTimerID);
 				
-				var existsIndex = $mine.checkGoods(ginfos);
+				var existsIndex = $mine.checkGoods(ginfos.unique_key);
 				if(existsIndex < 0){//如果菜品没有被添加过
-					/* $mine.chooseList.push({
-						"cart_id": newCartID(),
-						"goods_id": ginfos.id,
-						"goods_name": ginfos.goods_name,
-						"goods_pic": (ginfos.goods_thumb ? constVars.OSS_IMG_PATH + ginfos.goods_thumb + constVars.OSS_IMG_SIZE_FOR_LIST : "/image/yhofoodie_icon.png"),
-						"goods_price": ginfos.goods_price,
-						"goods_count": 1,
-						"total_price": ginfos.goods_price,
-						"spec_id": 0, //规格
-						"taste_id": 0, //口味
-						"garnish_ids": [], //配菜
-						"goods_remarks": "" //备注
-					}); */
 					this.chooseList.push(ginfos);
 				} else {
-					$mine.changeCount(existsIndex, 10);
+					$mine.changeCount(existsIndex, 3);
 				}
 				
-				if($mine.cartGoodsCount){//非首次才直接加1，首次需要延迟1秒，等等动画执行完
-					$mine.cartGoodsCount++;
-				}
-				$mine.cartAddingTimerID = setTimeout($mine.recalcPrice, 1000);
-			},
-			addGoods(obj){
-				this.chooseList.push(obj);
-				this.recalcPrice();
+				$mine.cartAddingTimerID = setTimeout($mine.recalcPrice, 500);
 			}
 		}
 	}
@@ -182,6 +187,7 @@
 		background-color: $maskBoxBgColor;
 		> ul{
 			max-height: 90%;
+			min-height: 50%;
 			overflow: auto;
 			transition: inherit;
 			position: relative;
@@ -202,6 +208,9 @@
 			height: 1.2rem;
 			width: 1.2rem;
 			fill: $appMainColor;
+		}
+		&:active{
+			background-color: #f0f0f0;
 		}
 	}
 	.choose-header-icon{

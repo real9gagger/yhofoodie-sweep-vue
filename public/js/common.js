@@ -178,8 +178,8 @@ function formatTime(timeStamp, formatStr) {
 	return formatDate(new Date(ts), formatStr);
 }
 
-//商品加到购物车动画
-function addGoodsToGwc(fromElem, toElem) {
+//商品加到购物车抛物线动画
+function throwGoodsToGwc(fromElem, toElem) {
 	if(!fromElem || !toElem) return;
 	
 	var $toElem = $(toElem);

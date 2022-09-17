@@ -28,7 +28,7 @@
 	import { getGarnishName } from '@/config/goods'
 	/* 配菜数量加减框 */
 	export default {
-		name: "orderGarnishCounts",
+		name: "goodsGarnishCounts",
 		data(){
 			return {
 				newCount: 0,
@@ -75,6 +75,7 @@
 					this.garnishInfo = null;
 					this.newCount = 0;
 					this.maxCount = 0;
+					this.$emit("confirm", -1);
 				}
 			},
 			setCount(action){
@@ -99,7 +100,7 @@
 					this.garnishInfo = null;
 					this.$emit("confirm", this.newCount);
 				}else{//取消
-					this.garnishInfo = null;
+					this.showMe();
 				}
 			},
 			showBox(elemDom){//从某个元素位置逐渐放大
@@ -133,7 +134,7 @@
 			closeMe(evt){
 				let elem = (evt.target || evt.srcElement);
 				if(elem.getAttribute("data-close") === "yes"){
-					this.showMe(null, null);
+					this.showMe();
 				}
 			},
 			gotoDesc(){

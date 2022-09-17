@@ -87,16 +87,22 @@ function handleGoodsList(gs){
 	}
 	
 	$.each(gs.list, function(idx, item){
+		let ckey = ("ck" + item.id); //用作键名，避免使用纯数字作为键名
 		for(let ix = item.goods_list.length - 1; ix >= 0; ix--){//由于有删除操作，因此必须要倒序遍历
 			let delCount = 0;
 			while (ix >= 0 && item.goods_list[ix].is_member_hide == 1){
 				ix--;
 				delCount++;
 			}
-			if(delCount > 0){
+			if (delCount > 0){
 				item.goods_list.splice(ix + 1, delCount); //删掉不能在用户端显示的菜品
 			}
+			if (ix >= 0){
+				item.goods_list[ix].cate_key = ckey;
+				item.goods_list[ix].goods_key = ("gk" + item.goods_list[ix].id);
+			}
 		}
+		item.cate_key = ckey;
 	});
 	
 	for(let ix = gs.list.length - 1; ix >= 0; ix--){//由于有删除操作，因此必须要倒序遍历
@@ -105,7 +111,7 @@ function handleGoodsList(gs){
 			ix--;
 			delCount++;
 		}
-		if(delCount > 0){
+		if (delCount > 0){
 			gs.list.splice(ix + 1, delCount); //删除没有菜品的分类
 		}
 	}
