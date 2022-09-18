@@ -5,7 +5,7 @@
 			<ul>
 				<li class="ps-s bg-ff pd-tb-1rem">
 					<div class="fx-r">
-						<div><img :src="getSrc(goodsInfo.goods_thumb)" class="wh-5rem br-rem5 bg-f0"/></div>
+						<div @click="gotoDetails($event)"><img :src="getSrc(goodsInfo.goods_thumb)" class="wh-5rem br-rem5 bg-f0"/></div>
 						<div class="fx-g1 pd-l-rem5">
 							<p class="fw-b fx-r">
 								<span class="fx-g1 fs-1rem">{{goodsInfo.goods_name}}</span>
@@ -35,6 +35,12 @@
 						<a @click="changeCount(0)" class="pd-lr-rem5"><svg class="wh-1rem2 fi-mc"><use xlink:href="#icon_jian1"></use></svg></a>
 						<span class="ta-c wi-1rem5">{{goodsInfo.goods_count}}</span>
 						<a @click="changeCount(1)" class="pd-lr-rem5"><svg class="wh-1rem2 fi-mc"><use xlink:href="#icon_jia1"></use></svg></a>
+					</div>
+				</li>
+				<li class="pd-t-1rem pd-r-rem5">
+					<div class="fx-hc">
+						<b class="fx-g1">打包</b>
+						<mu-switch v-model="isPack"></mu-switch>
 					</div>
 				</li>
 				<li v-if="goodsInfo.spec_list">
@@ -87,8 +93,9 @@
 </template>
 
 <script>
-	import constVars from '@/config/const'
-	import { getSpecName, getTasteName, getGarnishName } from '@/config/goods'
+	import constVars from '@/apis/const'
+	import yhoStore from '@/utils/store'
+	import { getSpecName, getTasteName, getGarnishName } from '@/apis/goods'
 	import garnishCounts from './garnishcounts'
 	
 	/* 菜品点菜框 */
@@ -99,7 +106,8 @@
 				goodsInfo: null,
 				garnishCount: 0,
 				garnishLimit: 0,
-				garnishIndex: -1
+				garnishIndex: -1,
+				isPack: true //是否打包
 			}
 		},
 		filters:{
@@ -154,7 +162,7 @@
 				if(url){
 					return (constVars.OSS_IMG_PATH + url + constVars.OSS_IMG_SIZE_FOR_LIST);
 				} else {
-					return "/image/yhofoodie_icon.png";
+					return "/image/foods_icon.png?ts=4444";
 				}
 			},
 			changeCount(isAdded){//点菜数量
@@ -217,6 +225,25 @@
 			gotoDesc(){//转到说明
 				this.$router.push("/helpdesc");
 			},
+			gotoDetails(evt){//查看菜品详情
+				let imgWhRatio = 0;
+				if(this.goodsInfo.goods_thumb){
+					let domImgBox = $(evt.currentTarget).children("img").get(0);
+					if(!domImgBox.src.endsWith("LOADING_FAILED")){//不是加载失败的图片
+						imgWhRatio = (domImgBox.naturalHeight / domImgBox.naturalWidth) || 0;
+					}
+				}
+				
+				yhoStore.onceObject("selected_goods_infos", this.goodsInfo); //选中的菜品信息
+				this.$router.push({
+					path: "/details",
+					query: {
+						gid: this.goodsInfo.id,
+						ratio: imgWhRatio,
+						cname: "其他"
+					}
+				});
+			},
 			addtoCart(){//加入购物车
 				let newGoods = this.formatGoods(this.goodsInfo);
 				this.goodsInfo = null;
@@ -265,7 +292,7 @@
 					keyString += `t${newGoods.taste_id}`;
 				}
 				
-				if(ginfos.garnish_list){
+				if(ginfos.garnish_list && ginfos.garnish_list.length){
 					for(let gobj of ginfos.garnish_list){
 						if(gobj.garnish_count){
 							newGoods.garnish_ids.push({

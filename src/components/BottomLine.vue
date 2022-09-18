@@ -8,7 +8,7 @@
 
 <script>
 	export default {
-		name: "BottomLine",
+		name: "BottomLine",//底部横线
 		data(){
 			return {}
 		}

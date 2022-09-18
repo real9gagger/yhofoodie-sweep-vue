@@ -1,11 +1,11 @@
 <template>
 	<div class="hi-f fx-c">
-		<div class="fx-hc pd-lr-rem5" style="height:3rem">
-			<p class="fx-g1">扫码点餐</p>
-			<div class="ps-r op-5">
-				<input class="select-search-input" type="search" autocomplete="off" />
+		<div class="fx-hc pd-lr-rem5 bd-b-f0" style="height:3rem">
+			<back-button title="T01"></back-button>
+			<div class="ps-r fx-g1 pd-l-1rem">
+				<input class="select-search-input" placeholder="搜一搜" type="search" autocomplete="off" />
 				<a class="ps-a po-t-c" style="right:0.5rem">
-					<svg style="width:1rem;height:1rem"><use xlink:href="#icon_sousuo"></use></svg>
+					<svg class="wh-1rem fi-99"><use xlink:href="#icon_sousuo"></use></svg>
 				</a>
 			</div>
 		</div>
@@ -51,7 +51,7 @@
 											:goods-count="chooseInfo[item.cate_key + subitem.goods_key]" 
 											:cate-index="ix0"
 											:goods-index="ix1"
-											:multiple-choice="isMultipleChoice(subitem)" 
+											:multiple-choice="subitem.is_multiple_choice" 
 											:counter-title="subitem.goods_price"
 											@change="addToCart"></counter-goods>
 									</template>
@@ -65,8 +65,8 @@
 		<div class="fx-r select-bottom-container">
 			<div class="fx-g1 ps-r">
 				<p class="select-cart-box fx-c fx-mc" @click="showChooseList()" :class="{nogoods: !chooseInfo.total_count}" id="myChooseCartBox">
-					<b class="dp-bk tc-ff fs-12px lh-1x">{{chooseInfo.total_count}}</b>
-					<svg><use xlink:href="#icon_gouwuche"></use></svg>
+					<b class="dp-bk tc-ff fs-12px lh-1x">{{chooseInfo.total_count || 0}}</b>
+					<svg class="wh-1rem2 fi-ff"><use xlink:href="#icon_gouwuche"></use></svg>
 				</p>
 				<p class="pd-l-4rem5 tc-ff wh-f fx-hc">
 					<span><i class="fs-12px">RM&nbsp;</i><b class="fs-1rem2">{{chooseInfo.total_price || "0.00"}}</b></span>
@@ -94,12 +94,13 @@
 
 <script>
 	/* 选菜界面 */
-	import * as goodsHelper from '@/config/goods'
-	import constVars from '@/config/const'
+	import * as goodsHelper from '@/apis/goods'
+	import constVars from '@/apis/const'
 	import yhoStore from '@/utils/store'
 	import chooseGoods from './choose'
 	import counterGoods from './counter'
 	import alacarteGoods from './alacartegoods'
+	import backButton from '@/components/BackButton'
 	
 	export default {
 		name: "goodsSelect",
@@ -122,7 +123,7 @@
 				return (this.shopGoods[this.cateIndex].goods_cate_name || "");
 			}
 		},
-		components: {chooseGoods,alacarteGoods,counterGoods},
+		components: {chooseGoods,alacarteGoods,counterGoods,backButton},
 		mounted() {
 			var $mine = this;
 			goodsHelper.getShopGoods().then((goods) => {
@@ -166,7 +167,7 @@
 				yhoStore.onceObject("selected_goods_infos", ginfos); //选中的菜品信息
 				
 				this.$router.push({
-					path: "./details",
+					path: "/details",
 					query: {
 						gid: ginfos.id,
 						ratio: imgWhRatio,
@@ -212,17 +213,6 @@
 				return "/image/waiter_happy.png"; //测试用
 				//return (constVars.OSS_IMG_PATH + path + constVars.OSS_IMG_SIZE_FOR_LIST);
 			},
-			isMultipleChoice(ginfos){//是否是多选
-				if(ginfos.is_package_goods){
-					return (ginfos.package_cate_list && ginfos.package_cate_list.length !== 0);
-				} else {
-					return (
-						ginfos.spec_list.length !== 0 ||
-						ginfos.taste_list.length !== 0 ||
-						ginfos.garnish_list.length !== 0
-					);
-				}
-			},
 			getOffsetTops(){
 				var $mine = this;
 				$mine.$nextTick(function(){
@@ -240,17 +230,27 @@
 				if(arg0 && arg0.actionValue){
 					let ginfos = this.shopGoods[arg0.cateIndex].goods_list[arg0.goodsIndex];
 					if(!arg0.multipleChoice){//直接加入购物车，不弹窗
-						this.$refs.chooseGBox.addGoods(this.$refs.alacarteGBox.formatGoods(ginfos));
+						if(arg0.actionValue > 0){
+							this.$refs.chooseGBox.addGoods(this.$refs.alacarteGBox.formatGoods(ginfos));
+							throwGoodsToGwc(arg0.clickedElem, "#myChooseCartBox");
+						} else {
+							this.$refs.chooseGBox.reduceGoods(ginfos.id);
+						}
 						this.alacarteBtn = null;
-						throwGoodsToGwc(arg0.clickedElem, "#myChooseCartBox");
-					} else {//显示点菜框
+					} else {//显示点菜框【显示多规格/口味/配菜弹窗】
 						this.alacarteBtn = arg0.clickedElem;
-						this.$refs.alacarteGBox.showMe(ginfos);
+						if(arg0.actionValue > 0){
+							this.$refs.alacarteGBox.showMe(ginfos);
+						} else if (arg0.newCount <= 0){//只有一份，直接删除
+							this.$refs.chooseGBox.reduceGoods(ginfos.id);
+						} else {
+							this.$refs.chooseGBox.showList();
+						}
 					}
 				} else {//关闭弹窗后，确定加入购物车
 					if(arg0){
 						this.$refs.chooseGBox.addGoods(arg0);
-						setTimeout(window.throwGoodsToGwc, 300, this.alacarteBtn, "#myChooseCartBox");//等弹窗完全隐藏后，再执行动画
+						setTimeout(window.throwGoodsToGwc, 250, this.alacarteBtn, "#myChooseCartBox");//等弹窗完全隐藏后，再执行动画
 					}
 					this.alacarteBtn = null;
 				}
@@ -381,6 +381,8 @@
 			}
 			>.cate-counts{
 				display: inline-block;
+				position: relative;
+				z-index: 2;
 				background-color: $appMainColor;
 				color: #fff;
 				text-align: center;
@@ -390,7 +392,7 @@
 				line-height: 0.8rem;
 				font-size: 0.6rem;
 			}
-			svg{
+			>svg{
 				width: 1em;
 				height: 1em;
 				fill: $appMainColor;
@@ -401,7 +403,7 @@
 	}
 	
 	.select-right-header{
-		padding: 0.5rem;
+		padding: 0.25rem 0.5rem;
 		position: sticky;
 		top:0;
 		z-index:1;
@@ -419,12 +421,6 @@
 				height: 5rem;
 				background-color: #f0f0f0;
 				border-radius: 0.5rem;
-			}
-			svg{
-				height: 1.2rem;
-				width: 1.2rem;
-				fill: $appMainColor;
-				overflow: hidden;
 			}
 			&:active{
 				transform: scale(0.95);
@@ -454,22 +450,20 @@
 	
 	.select-search-input{
 		border-radius: 1rem;
-		height: 2rem;
-		width: 2rem;
+		height: 1.8rem;
+		padding: 0 1rem;
+		width: 100%;
 		transition: width 0.5s;
-		border: 0;
-		&.stretching{
-			width: 6rem;
-		}
+		background-color: #f0f0f0;
+		border: 0px solid $appMainColor;
 	}
 	
 	.select-bottom-container{
 		position: relative;
 		z-index: 10;
 		height: 3rem;
-		background-image: linear-gradient(90deg, #f88 60%, #f66 100%);
+		background-image: linear-gradient(90deg, #f88 50%, #f66 100%);
 		background-color: #fff;
-		
 		> :first-child{
 			background-image: linear-gradient(90deg, #f66 0%, #f88 100%)
 		}
@@ -486,11 +480,6 @@
 		border: 3px solid #fff;
 		border-radius: 50%;
 		text-align: center;
-		> svg{
-			width:1.2rem;
-			height:1.2rem;
-			fill:#fff;
-		}
 		&.nogoods{
 			background-color: #f88;
 		}

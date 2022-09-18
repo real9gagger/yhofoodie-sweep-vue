@@ -107,10 +107,10 @@
 </template>
 
 <script>
-	import constVars from '@/config/const'
+	import constVars from '@/apis/const'
 	import yhoStore from '@/utils/store'
 	import bottomLine from '@/components/BottomLine'
-	import { getCateName, getSpecName, getTasteName, getSaleableTimeRange, getRecommendGoods } from '@/config/goods'
+	import { getCateName, getSpecName, getTasteName, getSaleableTimeRange, getRecommendGoods } from '@/apis/goods'
 
 	export default {
 		name: "goodsDetails",

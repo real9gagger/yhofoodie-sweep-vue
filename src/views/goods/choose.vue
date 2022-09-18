@@ -29,12 +29,11 @@
 								</template>
 							</p>
 							<p class="tc-99" v-if="item.goods_remarks">{{item.goods_remarks}}</p>
-							<p class="fx-hc fx-je mg-t-rem5">
-								<b class="tc-mc fx-g1 fs-1rem">{{item.total_price}}</b>
-								<a @click="changeCount(index, 0)"><svg><use xlink:href="#icon_jian1"></use></svg></a>
-								<span class="ta-c wi-2rem">{{item.goods_count}}</span>
-								<a @click="changeCount(index, 1)"><svg><use xlink:href="#icon_jia2"></use></svg></a>
-							</p>
+							<counter-goods class="mg-t-rem5"
+								:goods-count="item.goods_count" 
+								:goods-index="index"
+								:counter-title="item.total_price"
+								@change="counterChange"></counter-goods>
 						</div>
 					</div>
 				</li>
@@ -47,8 +46,9 @@
 </template>
 
 <script>
-	import constVars from '@/config/const'
-	import { getSpecName, getTasteName, getGarnishName } from '@/config/goods'
+	import constVars from '@/apis/const'
+	import { getSpecName, getTasteName, getGarnishName } from '@/apis/goods'
+	import counterGoods from './counter'
 	
 	export default {
 		name: "goodsChoose",
@@ -73,6 +73,7 @@
 				return getGarnishName(gid) || `G${gid}?`;
 			}
 		},
+		components:{ counterGoods },
 		methods:{
 			showList(){
 				if(!this.chooseList.length){
@@ -85,7 +86,7 @@
 				if(url){
 					return (constVars.OSS_IMG_PATH + url + constVars.OSS_IMG_SIZE_FOR_LIST);
 				} else {
-					return "/image/yhofoodie_icon.png";
+					return "/image/foods_icon.png?ts=4444";
 				}
 			},
 			recalcPrice(){//重新计算某些数据
@@ -124,13 +125,19 @@
 
 				this.$emit("change", obj0);
 			},
-			checkGoods(gkey){//判断菜品是否已被添加过了
-				let nth = 0;
-				for(let item of this.chooseList){
-					if(item.unique_key === gkey){
+			checkGoods(ukey){//判断菜品是否已被添加过了
+				for(let nth in this.chooseList){
+					if(this.chooseList[nth].unique_key === ukey){
 						return nth;
 					}
-					nth++;
+				}
+				return -1;
+			},
+			findGoods(gid){
+				for(let nth in this.chooseList){
+					if(this.chooseList[nth].goods_id === gid){
+						return nth;
+					}
 				}
 				return -1;
 			},
@@ -155,6 +162,9 @@
 					this.recalcPrice();
 				}
 			},
+			counterChange(arg0){
+				this.changeCount(arg0.goodsIndex, arg0.actionValue >= 1 ? 1 : 0);
+			},
 			addGoods(ginfos){//没有规格/口味/配菜的菜品可以快速添加
 				var $mine = this;
 
@@ -168,6 +178,10 @@
 				}
 				
 				$mine.cartAddingTimerID = setTimeout($mine.recalcPrice, 500);
+			},
+			reduceGoods(gid){//减少菜品数量
+				let existsIndex = this.findGoods(gid);
+				this.changeCount(existsIndex, 0);
 			}
 		}
 	}
@@ -198,19 +212,25 @@
 	}
 	.choose-goods-item{
 		padding: 0.5rem 1rem;
-		img{
+		position: relative;
+		> img{
 			width: 4rem;
 			height: 4rem;
 			border-radius: 0.5rem;
 			background-color: #f0f0f0;
 		}
-		svg{
-			height: 1.2rem;
-			width: 1.2rem;
-			fill: $appMainColor;
-		}
 		&:active{
 			background-color: #f0f0f0;
+		}
+		&:after{
+			content: "";
+			display: block;
+			position: absolute;
+			bottom: 0;
+			left: 1rem;
+			right: 1rem;
+			z-index: 0;
+			border-bottom: 1px solid #f0f0f0;
 		}
 	}
 	.choose-header-icon{

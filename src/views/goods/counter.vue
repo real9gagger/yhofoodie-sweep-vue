@@ -21,11 +21,11 @@
 			},
 			cateIndex:{
 				type: Number,
-				default: 0
+				default: -1
 			},
 			goodsIndex:{
 				type: Number,
-				default: 0
+				default: -1
 			},
 			multipleChoice: {//是否多选
 				type: Boolean,
@@ -64,7 +64,7 @@
 					newCount: 			this.goodsCount + val,
 					multipleChoice: 	this.multipleChoice,
 					actionValue: 		val,
-					clickedElem: 		evt.currentTarget,//被点击的元素
+					clickedElem: 		(this.cateIndex >= 0 && val >= 0 ? evt.currentTarget : null),//被点击的元素
 					cateIndex: 			this.cateIndex,
 					goodsIndex: 		this.goodsIndex
 				};

@@ -1,5 +1,5 @@
-//import { getLangeType } from '@/config/lange'
-import constVars from '@/config/const'
+//import { getLangeType } from './lange'
+import constVars from './const'
 import axios from 'axios'
 
 let shopGoodsData = null;
@@ -46,6 +46,19 @@ function getHHmmss(sxo) {
 	return (timeobj.getHours() * 10000 + timeobj.getMinutes() * 100 + timeobj.getSeconds());
 }
 
+//是否有多 规格/口味/配菜 选项
+function isMultipleChoice(ginfos){
+	if(ginfos.is_package_goods){
+		return (ginfos.package_cate_list && ginfos.package_cate_list.length !== 0);
+	} else {
+		return (
+			ginfos.spec_list.length !== 0 ||
+			ginfos.taste_list.length !== 0 ||
+			ginfos.garnish_list.length !== 0
+		);
+	}
+}
+
 //检查是否在可售时间内
 function isInTime(bzz, ezz) {
     var beg = getHHmmss(bzz), //开始
@@ -90,6 +103,7 @@ function handleGoodsList(gs){
 		let ckey = ("ck" + item.id); //用作键名，避免使用纯数字作为键名
 		for(let ix = item.goods_list.length - 1; ix >= 0; ix--){//由于有删除操作，因此必须要倒序遍历
 			let delCount = 0;
+			let tempObj = null;
 			while (ix >= 0 && item.goods_list[ix].is_member_hide == 1){
 				ix--;
 				delCount++;
@@ -98,8 +112,10 @@ function handleGoodsList(gs){
 				item.goods_list.splice(ix + 1, delCount); //删掉不能在用户端显示的菜品
 			}
 			if (ix >= 0){
-				item.goods_list[ix].cate_key = ckey;
-				item.goods_list[ix].goods_key = ("gk" + item.goods_list[ix].id);
+				tempObj = item.goods_list[ix];
+				tempObj.cate_key = ckey;
+				tempObj.goods_key = ("gk" + tempObj.id);
+				tempObj.is_multiple_choice = isMultipleChoice(tempObj);
 			}
 		}
 		item.cate_key = ckey;

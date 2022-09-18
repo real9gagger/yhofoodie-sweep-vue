@@ -293,6 +293,7 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 .fi-mc{fill:var(--main-color)}
 .fi-99{fill:#999}
 .fi-cc{fill:#ccc}
+.fi-ff{fill:#fff}
 
 .fw-i{font-weight:inherit}
 .fw-b{font-weight:bold}
@@ -390,6 +391,9 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 .bd-t-aa{border-top:1px solid #aaa}.bd-b-aa{border-bottom:1px solid #aaa}
 .bd-l-aa{border-left:1px solid #aaa}
 .bd-r-aa{border-right:1px solid #aaa}
+.bd-t-f0{border-top:1px solid #f0f0f0}.bd-b-f0{border-bottom:1px solid #f0f0f0}
+.bd-l-f0{border-left:1px solid #f0f0f0}
+.bd-r-f0{border-right:1px solid #f0f0f0}
 .bd-lr-dd{border-width:0 1px 0 1px;border-style:solid;border-color:#ddd}/* 左、右 */
 .bd-blr-dd{border-width:0 1px 1px 1px;border-style:solid;border-color:#ddd}/* 下、左、右 */
 .bd-tlr-dd{border-width:1px 1px 0 1px;border-style:solid;border-color:#ddd}/* 上、左、右 */

@@ -25,7 +25,7 @@
 </template>
 
 <script>
-	import { getGarnishName } from '@/config/goods'
+	import { getGarnishName } from '@/apis/goods'
 	/* 配菜数量加减框 */
 	export default {
 		name: "goodsGarnishCounts",
