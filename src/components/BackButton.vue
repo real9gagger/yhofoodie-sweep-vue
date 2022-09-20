@@ -1,7 +1,7 @@
 <template>
 	<div @click="goBack()" class="fx-hc">
 		<svg class="back-button-svg"><use xlink:href="#icon_zuoxiangjiao"></use></svg>
-		<span class="tc-66">{{title}}</span>
+		<span class="lh-1x fx-g1">{{title}}</span>
 	</div>
 </template>
 
@@ -29,6 +29,6 @@
 	.back-button-svg{
 		width:1rem;
 		height:1rem;
-		fill: #666;
+		fill: currentColor;
 	}
 </style>

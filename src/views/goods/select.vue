@@ -23,7 +23,7 @@
 					</li>
 				</ul>
 			</div>
-			<div class="fx-g1 of-a ps-r" id="rightMenuContainer" @scroll="onGoodsScroll">
+			<div v-if="shopGoods" class="fx-g1 of-a ps-r" id="rightMenuContainer" @scroll="onGoodsScroll">
 				<template v-for="item,ix0 in shopGoods">
 					<h4 class="select-right-header" :key="item.id">{{item.goods_cate_name}}</h4>
 					<ul class="select-right-menu" :key="item.cate_key">
@@ -61,6 +61,26 @@
 					</ul>
 				</template>
 			</div>
+			<skeleton-screen v-else :item-count="8" :animation-type="2" item-class="fx-r mg-b-1rem" class="fx-g1 pd-lr-rem5">
+				<template #header>
+					<div class="pd-tb-rem25"><span class="skeleton-item wi-6rem"></span></div>
+				</template>
+				<template #item>
+					<div class="skeleton-item wh-5rem br-rem5 ps-r">
+						<svg class="wh-1rem5 fi-cc ps-a po-mc"><use xlink:href="#icon_image1"></use></svg>
+					</div>
+					<div class="fx-g1 fx-c bg-ff pd-l-rem5">
+						<span class="skeleton-item mg-b-rem5"></span>
+						<span class="skeleton-item wi-4rem"></span>
+						<p class="fx-g1"></p>
+						<p class="fx-r">
+							<span class="skeleton-item wi-2rem"></span>
+							<span class="fx-g1"></span>
+							<em class="skeleton-item br-h wh-1rem2"></em>
+						</p>
+					</div>
+				</template>
+			</skeleton-screen>
 		</div>
 		<div class="fx-r select-bottom-container">
 			<div class="fx-g1 ps-r">
@@ -101,12 +121,13 @@
 	import counterGoods from './counter'
 	import alacarteGoods from './alacartegoods'
 	import backButton from '@/components/BackButton'
+	import skeletonScreen from '@/components/SkeletonScreen'
 	
 	export default {
 		name: "goodsSelect",
 		data(){
 			return {
-				shopGoods: [],
+				shopGoods: null,
 				cateIndex: 0,
 				h4OffsetTops: [],
 				liOffsetTops: [],
@@ -123,12 +144,17 @@
 				return (this.shopGoods[this.cateIndex].goods_cate_name || "");
 			}
 		},
-		components: {chooseGoods,alacarteGoods,counterGoods,backButton},
+		components: {
+			chooseGoods,
+			alacarteGoods,
+			counterGoods,
+			backButton,
+			skeletonScreen
+		},
 		mounted() {
 			var $mine = this;
 			goodsHelper.getShopGoods().then((goods) => {
-				$mine.shopGoods = Object.freeze(goods.list || []);
-				$mine.checkGoodsStatus();
+				$mine.checkGoodsStatus(goods.list || []);
 				$mine.getOffsetTops();
 				//console.log(goods);
 			});
@@ -175,12 +201,12 @@
 					}
 				});
 			},
-			checkGoodsStatus(){//检查菜品是否可售
+			checkGoodsStatus(goodsList){//检查菜品是否可售
 				let indexArr = [];
 				
 				goodsHelper.resetDateTime(); //必须调用！
 				
-				$.each(this.shopGoods, function(idx, cate){
+				$.each(goodsList, function(idx, cate){
 					if(cate.id > 2){
 						cate.isAvailableCate = goodsHelper.isCateInSaleableTime(cate, false);
 					} else if(cate.id === 0){ //套餐。单独判断
@@ -199,7 +225,7 @@
 				});
 				
 				for(let idx of indexArr){
-					for(let e_e of this.shopGoods[idx].goods_list){
+					for(let e_e of goodsList[idx].goods_list){
 						let cobj = goodsHelper.getCateObject(e_e.goods_cate_id);
 						if(!cobj || cobj.isAvailableCate){ //上述已判断了分类的是否在可售时间内，因此这里直接获取判断结果就行
 							e_e.status = 1;
@@ -208,6 +234,8 @@
 						}
 					}
 				}
+				
+				this.shopGoods = Object.freeze(goodsList);
 			},
 			getGoodsPic(path){
 				return "/image/waiter_happy.png"; //测试用

@@ -42,6 +42,14 @@ let routerList = [
 		}
 	},
 	{
+		path: "/inputer",
+		name: "文本输入器",
+		component: () => import("@/components/TextInputer"),
+		meta: {
+			keepAlive: false
+		}
+	},
+	{
 		path: "/e404",
 		name: "找不到页面",
 		component: () => import("@/views/error/http404"),
@@ -56,5 +64,6 @@ let routerList = [
 ]
 
 export default new VueRouter({
-	routes: routerList
+	routes: routerList,
+	//scrollBehavior: function(to, from, savedPosition){}
 })

@@ -3,7 +3,7 @@
 		<div v-if="goodsInfo" class="alacarte-goods-container fx-c">
 			<h4 class="fx-g1" @click="showMe()"><!--占位专用--></h4>
 			<ul>
-				<li class="ps-s bg-ff pd-tb-1rem">
+				<li class="ps-s bg-ff pd-t-1rem pd-b-rem5 pd-lr-rem5">
 					<div class="fx-r">
 						<div @click="gotoDetails($event)"><img :src="getSrc(goodsInfo.goods_thumb)" class="wh-5rem br-rem5 bg-f0"/></div>
 						<div class="fx-g1 pd-l-rem5">
@@ -29,7 +29,7 @@
 						</div>
 					</div>
 				</li>
-				<li>
+				<li class="pd-rem5">
 					<div class="fx-hc">
 						<span class="fw-b fx-g1">数量</span>
 						<a @click="changeCount(0)" class="pd-lr-rem5"><svg class="wh-1rem2 fi-mc"><use xlink:href="#icon_jian1"></use></svg></a>
@@ -37,14 +37,14 @@
 						<a @click="changeCount(1)" class="pd-lr-rem5"><svg class="wh-1rem2 fi-mc"><use xlink:href="#icon_jia1"></use></svg></a>
 					</div>
 				</li>
-				<li class="pd-t-1rem pd-r-rem5">
-					<div class="fx-hc">
+				<li class="pd-rem5">
+					<div class="fx-hc pd-r-rem5">
 						<b class="fx-g1">打包</b>
 						<mu-switch v-model="isPack"></mu-switch>
 					</div>
 				</li>
-				<li v-if="goodsInfo.spec_list">
-					<p class="fw-b pd-t-1rem">规格</p>
+				<li v-if="goodsInfo.spec_list" class="pd-rem5">
+					<p class="fw-b">规格</p>
 					<p>
 						<a v-for="vxo,ixo in goodsInfo.spec_list" class="alacarte-goods-subitem" 
 							@click="selectGkp(ixo, 1)"
@@ -55,8 +55,8 @@
 						</a>
 					</p>
 				</li>
-				<li v-if="goodsInfo.taste_list">
-					<p class="fw-b pd-t-1rem">口味</p>
+				<li v-if="goodsInfo.taste_list" class="pd-rem5">
+					<p class="fw-b">口味</p>
 					<p>
 						<a v-for="vxo,ixo in goodsInfo.taste_list" class="alacarte-goods-subitem" 
 							@click="selectGkp(ixo, 2)"
@@ -67,8 +67,8 @@
 						</a>
 					</p>
 				</li>
-				<li v-if="goodsInfo.garnish_list">
-					<p class="fw-b pd-t-1rem">配菜<span class="pd-l-rem5 tc-99" v-if="garnishLimit">(最多 {{garnishLimit}} 份)</span></p>
+				<li v-if="goodsInfo.garnish_list" class="pd-rem5">
+					<p class="fw-b">配菜<span class="pd-l-rem5 tc-99" v-if="garnishLimit">(最多 {{garnishLimit}} 份)</span></p>
 					<p>
 						<a v-for="vxo,ixo in goodsInfo.garnish_list" class="alacarte-goods-subitem"
 							@click="selectGkp(ixo, 3)"
@@ -82,7 +82,19 @@
 						</a>
 					</p>
 				</li>
-				<li v-if="goodsInfo.remarks"></li>
+				<li v-if="goodsInfo.beizhu_list" class="pd-rem5">
+					<p class="fw-b">备注<span class="pd-l-rem5 tc-99">带*为必选</span></p>
+					<p style="padding-left:1px">
+						<template v-for="item,index in goodsInfo.beizhu_list">
+							<template v-for="subitem,subindex in item.list">
+								<a v-if="subitem.id != 0" class="alacarte-beizhu-box" @click="selectBz(index, subindex)" :key="subitem.id"
+									:class="{isfirst: subindex===0, islast: subindex===item.lastIndex, checked: subindex===item.selectIndex}">{{subitem.name}}</a>
+								<a v-else class="alacarte-beizhu-box isfirst islast" @click="selectBz(index, subindex)" :key="subitem.id"
+									:class="{checked: subindex===item.selectIndex}"><svg class="wh-1em fi-66"><use xlink:href="#icon_edit1"></use></svg>&nbsp;手动输入</a>
+							</template>
+						</template>
+					</p>
+				</li>
 				<li class="ps-s po-b-0 ta-c bg-ff pd-tb-1rem">
 					<div class="wi-col-10 btnbox bg-mc tc-ff" @click="addtoCart">加入购物车</div>
 				</li>
@@ -96,6 +108,7 @@
 	import constVars from '@/apis/const'
 	import yhoStore from '@/utils/store'
 	import { getSpecName, getTasteName, getGarnishName } from '@/apis/goods'
+	import { getShopDatas, getRemarkInfo } from '@/apis/shop_data'
 	import garnishCounts from './garnishcounts'
 	
 	/* 菜品点菜框 */
@@ -107,7 +120,7 @@
 				garnishCount: 0,
 				garnishLimit: 0,
 				garnishIndex: -1,
-				isPack: true //是否打包
+				isPack: false //是否打包
 			}
 		},
 		filters:{
@@ -122,6 +135,10 @@
 			}
 		},
 		components:{ garnishCounts },
+		mounted() {
+			//var $mine = this;
+			getShopDatas();
+		},
 		methods: {
 			showMe(ginfos){//显示面板...
 				if(ginfos){
@@ -150,6 +167,24 @@
 					
 					newer.total_price = tprice;
 					newer.goods_count = 1;
+					newer.beizhu_list = [];
+					
+					if(newer.remarks){//菜品可选备注
+						for(let rid in newer.remarks){
+							let robj = getRemarkInfo(rid);
+							if(robj){
+								robj.selectIndex = -1;
+								newer.beizhu_list.push(robj);
+							}
+						}
+					}
+					newer.beizhu_list.push({
+						id: "0",
+						name: "自定义备注",
+						lastIndex: 0,
+						selectIndex: -1,
+						list: [{id:"0", name: ""}]
+					});
 					
 					this.garnishLimit = (+newer.garnish_max_count || 0);
 					this.goodsInfo = newer;
@@ -190,6 +225,22 @@
 					}
 				}
 				this.recalcPrice();
+			},
+			selectBz(idx0, idx1){
+				let bzobj = this.goodsInfo.beizhu_list[idx0];
+				if(bzobj.id==="0"){
+					this.$router.push({
+						path: "/inputer",
+						query: {
+							title: bzobj.name,
+							value: bzobj.list[0].name
+						}
+					});
+				} else if(bzobj.selectIndex === idx1){
+					bzobj.selectIndex = -1;
+				} else {
+					bzobj.selectIndex = idx1;
+				}
 			},
 			recalcPrice(){//重新计算总价
 				let gg = this.goodsInfo;
@@ -311,6 +362,16 @@
 					}
 				}
 				
+				if(ginfos.beizhu_list){
+					let goodsRemarks = "";
+					for(let bobj of ginfos.beizhu_list){
+						if(bobj.selectIndex >= 0){
+							goodsRemarks += ("," + bobj.list[bobj.selectIndex].name);
+						}
+					}
+					newGoods.goods_remarks = goodsRemarks.substr(1);
+				}
+				
 				newGoods.goods_price = goodsPrice;
 				newGoods.unit_price = accAdd(goodsPrice, garnishTotalPrice);
 				newGoods.garnish_total_price = garnishTotalPrice;
@@ -342,24 +403,21 @@
 			transform: translateY(0);
 			border-radius: 1rem 1rem 0 0;
 			background-color: #fff;
-			padding: 0 0.5rem;
 		}
 	}
-	
 	.alacarte-close-icon{
 		width:0.8rem;
 		height:0.8rem;
 		fill:#999;
 		vertical-align: text-top;
 	}
-	
 	.alacarte-goods-subitem{
 		display: inline-block;
 		padding: 0.2rem 1rem;
 		margin:0.5rem 0.5rem 0 0;
-		border:1px solid #f0f0f0;
-		background-color: #f6f6f6;
-		border-radius: 0.3rem;
+		border:1px solid #dfdfdf;
+		background-color: #f3f3f3;
+		border-radius: 0.4rem;
 		color: #333;
 		text-align: center;
 		vertical-align: top;
@@ -378,6 +436,31 @@
 		&.editing{
 			border-color:#f90;
 			background-color: rgba(255, 153, 0, 0.2);
+		}
+	}
+	.alacarte-beizhu-box{
+		display: inline-block;
+		margin-top: 0.5rem;
+		margin-left: -1px;
+		border: 1px solid #dfdfdf;
+		vertical-align: top;
+		padding: 0.8rem;
+		background-color: #f3f3f3;
+		color: #333;
+		&.isfirst{
+			border-top-left-radius: 0.4rem;
+			border-bottom-left-radius: 0.4rem;
+		}
+		&.islast{
+			border-top-right-radius: 0.4rem;
+			border-bottom-right-radius: 0.4rem;
+			margin-right:0.5rem;
+		}
+		&.checked{
+			position: relative;
+			z-index: 1;
+			border-color: $appMainColor;
+			background-color: rgba($mainColorR, $mainColorG, $mainColorB, 0.2);
 		}
 	}
 	

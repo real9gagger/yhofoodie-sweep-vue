@@ -1,5 +1,5 @@
 <template>
-	<div v-if="goodsInfo" class="hi-min-s bg-f0 of-a ps-r" id="detailsWrapBox">
+	<div v-if="goodsInfo" key="D0007" class="hi-min-s bg-f0 of-a">
 		<div class="details-goods-pic" v-if="goodsInfo.goods_thumb">
 			<img class="wi-f bg-sz-fit" :style="goodsPicStyle" :src="ossImagePath + goodsInfo.goods_thumb" />
 		</div>
@@ -99,7 +99,7 @@
 		</div>
 		<bottom-line class="mg-lr-rem5">•</bottom-line>
 	</div>
-	<div v-else class="ta-c pd-t-4rem">
+	<div v-else key="D0008" class="ta-c pd-t-4rem">
 		<p><svg style="fill:#ccc;width:15rem;"><use xlink:href="#icon_nodata"></use></svg></p>
 		<p class="fs-1rem tc-aa mg-t-rem5">菜品数据已丢失</p>
 		<p class="tc-aa mg-t-1rem"><span class="tc-mc">{{remainingSeconds}}</span> 秒后返回上一页</p>

@@ -166,9 +166,8 @@ export function getShopGoods(){
 		}).then(response => {
 			if(response && response.data){
 				shopGoodsData = handleGoodsList(response.data);
-				return shopGoodsData;
 			} else {
-				return {
+				shopGoodsData = {
 					"list": [],
 					"garnish_list": [],
 					"package_list": [],
@@ -176,6 +175,7 @@ export function getShopGoods(){
 					"taste_list": []
 				};
 			}
+			return shopGoodsData;
 		});
 	}
 };
