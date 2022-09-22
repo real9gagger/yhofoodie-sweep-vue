@@ -90,7 +90,7 @@
 <script>
 	/* 菜品详情模式-2，有 swiper 特效【此页面未完成】*/
 	import constVars from '@/apis/const'
-	import yhoStore from '@/utils/store'
+	import yhoStore from '@/utils/yhostore'
 	import bottomLine from '@/components/BottomLine'
 	import { getCateName, getSpecName, getTasteName } from '@/apis/goods'
 	

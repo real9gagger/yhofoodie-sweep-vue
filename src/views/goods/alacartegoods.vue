@@ -2,7 +2,7 @@
 	<transition name="alacarte-slideup">
 		<div v-if="goodsInfo" class="alacarte-goods-container fx-c">
 			<h4 class="fx-g1" @click="showMe()"><!--占位专用--></h4>
-			<ul>
+			<ul id="alacarteUlBox">
 				<li class="ps-s bg-ff pd-t-1rem pd-b-rem5 pd-lr-rem5">
 					<div class="fx-r">
 						<div @click="gotoDetails($event)"><img :src="getSrc(goodsInfo.goods_thumb)" class="wh-5rem br-rem5 bg-f0"/></div>
@@ -13,13 +13,24 @@
 							</p>
 							<p class="tc-66 fs-rem7">
 								<span v-if="goodsInfo.spec_index >= 0" class="pd-r-rem5">{{goodsInfo.spec_list[goodsInfo.spec_index].spec_id | toSpecName}}</span>
-								<span v-if="goodsInfo.taste_index >= 0">{{goodsInfo.taste_list[goodsInfo.taste_index].taste_id | toTasteName}}</span>
+								<span v-if="goodsInfo.taste_index >= 0" class="pd-r-rem5">{{goodsInfo.taste_list[goodsInfo.taste_index].taste_id | toTasteName}}</span>
+								<template v-if="isPack">
+									<svg class="wh-rem8 fi-mc va-tt"><use xlink:href="#icon_dabao1"></use></svg>
+									<span class="tc-mc pd-l-rem1">打包</span>
+								</template>
 							</p>
 							<p class="tc-66 fs-rem7" v-if="garnishCount">
+								<svg class="wh-rem8 fi-99 va-m"><use xlink:href="#icon_peicai1"></use></svg>
 								<template v-for="vvv in goodsInfo.garnish_list">
 									<template v-if="vvv.garnish_count > 1">{{vvv.garnish_id | toGarnishName}} x{{vvv.garnish_count}},</template>
 									<template v-else-if="vvv.garnish_count === 1">{{vvv.garnish_id | toGarnishName}},</template>
 								</template>
+							</p>
+							<p class="tc-66 fs-rem7" v-if="beizhuCount > 0 || textInputerValue">
+								<svg class="wh-rem8 fi-99 va-tt"><use xlink:href="#icon_beizhu1"></use></svg>
+								<template v-for="vvv in goodsInfo.beizhu_list">
+									<template v-if="vvv.selectIndex >= 0">{{vvv.list[vvv.selectIndex].name}},</template>
+								</template>{{textInputerValue}}
 							</p>
 							<p class="fx-hc" @click="gotoDesc()">
 								<b class="tc-mc fs-1rem">{{goodsInfo.total_price}}</b>
@@ -86,13 +97,15 @@
 					<p class="fw-b">备注<span class="pd-l-rem5 tc-99">带*为必选</span></p>
 					<p style="padding-left:1px">
 						<template v-for="item,index in goodsInfo.beizhu_list">
-							<template v-for="subitem,subindex in item.list">
-								<a v-if="subitem.id != 0" class="alacarte-beizhu-box" @click="selectBz(index, subindex)" :key="subitem.id"
-									:class="{isfirst: subindex===0, islast: subindex===item.lastIndex, checked: subindex===item.selectIndex}">{{subitem.name}}</a>
-								<a v-else class="alacarte-beizhu-box isfirst islast" @click="selectBz(index, subindex)" :key="subitem.id"
-									:class="{checked: subindex===item.selectIndex}"><svg class="wh-1em fi-66"><use xlink:href="#icon_edit1"></use></svg>&nbsp;手动输入</a>
-							</template>
+							<a v-for="subitem,subindex in item.list"
+								class="alacarte-beizhu-box"
+								@click="selectGbz(index, subindex)" :key="subitem.id"
+								:class="{isfirst: subindex===0, islast: subindex===item.lastIndex, checked: subindex===item.selectIndex}"
+							>{{subitem.name}}</a>
 						</template>
+						<a class="alacarte-beizhu-box isfirst islast" 
+							@click="selectGbz(-1, -1)" :class="{checked: !!textInputerValue}"
+						><svg class="wh-1em fi-66"><use xlink:href="#icon_edit1"></use></svg>&nbsp;{{textInputerValue || "自定义备注"}}</a>
 					</p>
 				</li>
 				<li class="ps-s po-b-0 ta-c bg-ff pd-tb-1rem">
@@ -106,7 +119,8 @@
 
 <script>
 	import constVars from '@/apis/const'
-	import yhoStore from '@/utils/store'
+	import yhoStore from '@/utils/yhostore'
+	import { mapGetters } from 'vuex'
 	import { getSpecName, getTasteName, getGarnishName } from '@/apis/goods'
 	import { getShopDatas, getRemarkInfo } from '@/apis/shop_data'
 	import garnishCounts from './garnishcounts'
@@ -120,6 +134,8 @@
 				garnishCount: 0,
 				garnishLimit: 0,
 				garnishIndex: -1,
+				beizhuCount: 0,
+				ulScrollTop: 0,
 				isPack: false //是否打包
 			}
 		},
@@ -134,10 +150,23 @@
 				return getGarnishName(gid) || `G${gid}?`;
 			}
 		},
-		components:{ garnishCounts },
+		computed: {
+			...mapGetters(["textInputerValue"])
+		},
+		components: { garnishCounts },
 		mounted() {
 			//var $mine = this;
 			getShopDatas();
+		},
+		deactivated(){//保存上次滚动到的地方
+			this.ulScrollTop = $("#alacarteUlBox").scrollTop() || 0;
+		},
+		activated(){
+			if(this.ulScrollTop){
+				this.$nextTick(function(){ //返回上次滚动到的地方
+					$("#alacarteUlBox").scrollTop(this.ulScrollTop);
+				});
+			}
 		},
 		methods: {
 			showMe(ginfos){//显示面板...
@@ -178,18 +207,11 @@
 							}
 						}
 					}
-					newer.beizhu_list.push({
-						id: "0",
-						name: "自定义备注",
-						lastIndex: 0,
-						selectIndex: -1,
-						list: [{id:"0", name: ""}]
-					});
 					
 					this.garnishLimit = (+newer.garnish_max_count || 0);
 					this.goodsInfo = newer;
 				} else {
-					this.goodsInfo = null;
+					this.resetData();
 					this.$emit("confirm", null);
 				}
 			},
@@ -226,19 +248,24 @@
 				}
 				this.recalcPrice();
 			},
-			selectBz(idx0, idx1){
-				let bzobj = this.goodsInfo.beizhu_list[idx0];
-				if(bzobj.id==="0"){
+			selectGbz(idx0, idx1){//选择 goods 备注
+				if(idx0 === -1){
 					this.$router.push({
 						path: "/inputer",
 						query: {
-							title: bzobj.name,
-							value: bzobj.list[0].name
+							title: "自定义备注",
+							value: this.textInputerValue
 						}
 					});
-				} else if(bzobj.selectIndex === idx1){
+					return;
+				}
+				
+				let bzobj = this.goodsInfo.beizhu_list[idx0];
+				if(bzobj.selectIndex === idx1){
+					this.beizhuCount--;
 					bzobj.selectIndex = -1;
 				} else {
+					this.beizhuCount += (bzobj.selectIndex === -1 ? 1 : 0);
 					bzobj.selectIndex = idx1;
 				}
 			},
@@ -279,10 +306,7 @@
 			gotoDetails(evt){//查看菜品详情
 				let imgWhRatio = 0;
 				if(this.goodsInfo.goods_thumb){
-					let domImgBox = $(evt.currentTarget).children("img").get(0);
-					if(!domImgBox.src.endsWith("LOADING_FAILED")){//不是加载失败的图片
-						imgWhRatio = (domImgBox.naturalHeight / domImgBox.naturalWidth) || 0;
-					}
+					imgWhRatio = getImageHwRatio($(evt.currentTarget).children("img").get(0));
 				}
 				
 				yhoStore.onceObject("selected_goods_infos", this.goodsInfo); //选中的菜品信息
@@ -297,8 +321,18 @@
 			},
 			addtoCart(){//加入购物车
 				let newGoods = this.formatGoods(this.goodsInfo);
-				this.goodsInfo = null;
+				this.resetData();
 				this.$emit("confirm", newGoods);
+			},
+			resetData(){
+				this.goodsInfo = null;
+				this.garnishCount = 0;
+				this.garnishLimit = 0;
+				this.garnishIndex = -1;
+				this.beizhuCount = 0;
+				this.ulScrollTop = 0;
+				this.isPack = false;
+				this.$store.commit("resetTextInputerValue");//清空备注输入
 			},
 			garnishConfirm(arg0){
 				if(arg0 >= 0){
@@ -319,38 +353,34 @@
 					"total_price": ginfos.total_price || ginfos.goods_price,
 					"cate_key": ginfos.cate_key,
 					"goods_key": ginfos.goods_key,
-					"is_package_goods": 0,
+					"is_package_goods": 0, //0-非套餐，1-套餐
 					"goods_price": "", //规格+口味 总价
 					"spec_id": 0, //规格
 					"taste_id": 0, //口味
-					"garnish_ids": [], //配菜
-					"garnish_total_price": "",//配菜 总价
-					"unit_price": "",//规格+口味+配菜 总价
-					"unique_key": "",//用来判断当前菜品是否已经添加过了
-					"goods_remarks": "" //备注
+					"garnish_ids": {}, //配菜
+					"unit_price": "", //规格+口味+配菜 总价
+					"unique_key": "", //用来判断当前菜品是否已经添加过了
+					"goods_remarks": {}, //备注
+					"is_pack": this.isPack //是否打包
 				};
-				let garnishTotalPrice = 0;
+				let garnishTotalPrice = 0;//配菜总价
 				
-				if(ginfos.spec_index >= 0){
+				if(ginfos.spec_index >= 0){//用户选的规格
 					newGoods.spec_id = ginfos.spec_list[ginfos.spec_index].spec_id;
 					goodsPrice = ginfos.spec_list[ginfos.spec_index].goods_price;
 					keyString += `s${newGoods.spec_id}`;
 				}
 				
-				if(ginfos.taste_index >= 0){
+				if(ginfos.taste_index >= 0){//用户选的口味
 					newGoods.taste_id = ginfos.taste_list[ginfos.taste_index].taste_id;
 					goodsPrice = toFixed2(accAdd(goodsPrice, ginfos.taste_list[ginfos.taste_index].goods_price));
 					keyString += `t${newGoods.taste_id}`;
 				}
 				
-				if(ginfos.garnish_list && ginfos.garnish_list.length){
+				if(ginfos.garnish_list){//用户选的配菜
 					for(let gobj of ginfos.garnish_list){
 						if(gobj.garnish_count){
-							newGoods.garnish_ids.push({
-								"garnish_id": gobj.garnish_id,
-								"garnish_price": gobj.goods_price,
-								"garnish_count": gobj.garnish_count
-							});
+							newGoods.garnish_ids[gobj.garnish_id] = gobj.garnish_count;
 							if(gobj.garnish_count > 1){
 								garnishTotalPrice = accAdd(garnishTotalPrice, accMul(gobj.goods_price, gobj.garnish_count));
 								keyString += `a${gobj.garnish_id}x${gobj.garnish_count}`;
@@ -362,21 +392,29 @@
 					}
 				}
 				
-				if(ginfos.beizhu_list){
-					let goodsRemarks = "";
+				if(ginfos.beizhu_list){//用户选择的备注
 					for(let bobj of ginfos.beizhu_list){
 						if(bobj.selectIndex >= 0){
-							goodsRemarks += ("," + bobj.list[bobj.selectIndex].name);
+							let selbz = bobj.list[bobj.selectIndex];
+							newGoods.goods_remarks[selbz.id] = selbz.name;
+							keyString += `r${selbz.id}`;
 						}
 					}
-					newGoods.goods_remarks = goodsRemarks.substr(1);
+				}
+				
+				if(this.textInputerValue){//用户自定义备注
+					newGoods.goods_remarks["B0000"] = this.textInputerValue; //键名英文字母开头，以便让自定义备注排在最后
+					keyString += `b${newGoods.cart_id}`; //如果有自定义备注，则让key保持唯一性
+				}
+				
+				if(this.isPack){//是否打包
+					keyString += "p1";
 				}
 				
 				newGoods.goods_price = goodsPrice;
 				newGoods.unit_price = accAdd(goodsPrice, garnishTotalPrice);
-				newGoods.garnish_total_price = garnishTotalPrice;
 				newGoods.unique_key = keyString;
-				
+				console.log(newGoods)
 				return newGoods;
 			}
 		}
@@ -422,7 +460,6 @@
 		text-align: center;
 		vertical-align: top;
 		min-width: 5rem;
-		transition: all 0.3s;
 		&.bigger{
 			padding: 0.8rem 1rem;
 			>.dp-bk{

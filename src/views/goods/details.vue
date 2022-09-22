@@ -108,7 +108,7 @@
 
 <script>
 	import constVars from '@/apis/const'
-	import yhoStore from '@/utils/store'
+	import yhoStore from '@/utils/yhostore'
 	import bottomLine from '@/components/BottomLine'
 	import { getCateName, getSpecName, getTasteName, getSaleableTimeRange, getRecommendGoods } from '@/apis/goods'
 

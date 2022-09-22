@@ -98,6 +98,15 @@ function onImageLoadingError(){
 	}
 }
 
+//获取图片高度除以宽度的比例
+function getImageHwRatio(imgDom){
+	let hwRatio = 0;
+	if(imgDom.src && !imgDom.src.endsWith("LOADING_FAILED")){//不是加载失败的图片
+		hwRatio = (imgDom.naturalHeight / imgDom.naturalWidth);
+	}
+	return (hwRatio || 0);
+}
+
 //保留两位小数。避免出现 (0.575).toFixed(2) 等于 0.57 的结果
 function toFixed2(str){
 	if(!str){

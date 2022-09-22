@@ -260,6 +260,7 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 .wh-same-wi{position:relative}/*让盒子的高度等于宽度，【注：不是让宽度等于高度，而是让高度等于宽度】*/
 .wh-same-wi:before{content:"";display:block;width:100%;padding-top:100%;}
 .wh-1em{width:1em;height:1em}
+.wh-rem8{width:0.8rem;height:0.8rem}
 .wh-1rem{width:1rem;height:1rem}
 .wh-1rem2{width:1.2rem;height:1.2rem}
 .wh-1rem5{width:1.5rem;height:1.5rem}
@@ -298,6 +299,7 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 .fi-99{fill:#999}
 .fi-cc{fill:#ccc}
 .fi-ff{fill:#fff}
+.fi-cuco{fill:currentColor}
 
 .fw-i{font-weight:inherit}
 .fw-b{font-weight:bold}

@@ -1,5 +1,5 @@
 //全局语言包
-import yhoStore from '@/utils/store'
+import yhoStore from '@/utils/yhostore'
 
 let ll_type = yhoStore.get("location_language");
 if(!ll_type || !/^(zh|en|ms)$/g.test(ll_type)){

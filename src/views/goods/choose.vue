@@ -19,17 +19,21 @@
 							<p class="fw-b">{{item.goods_name}}</p>
 							<p class="tc-99">
 								<span v-if="item.spec_id" class="pd-r-rem5">{{item.spec_id | toSpecName}}</span>
-								<span v-if="item.taste_id">{{item.taste_id | toTasteName}}</span>
-							</p>
-							<p class="tc-99" v-if="item.garnish_ids.length">
-								<template v-for="vvv,iii in item.garnish_ids">
-									<template v-if="iii !== 0">,</template>
-									<template v-if="vvv.garnish_count > 1">{{vvv.garnish_id | toGarnishName}} x{{vvv.garnish_count}}</template>
-									<template v-else >{{vvv.garnish_id | toGarnishName}}</template>
+								<span v-if="item.taste_id" class="pd-r-rem5">{{item.taste_id | toTasteName}}</span>
+								<template v-if="item.is_pack">
+									<svg class="wh-1rem fi-mc va-t"><use xlink:href="#icon_dabao1"></use></svg>
+									<span class="tc-mc pd-l-rem1">打包</span>
 								</template>
 							</p>
-							<p class="tc-99" v-if="item.goods_remarks">{{item.goods_remarks}}</p>
-							<counter-goods class="mg-t-rem5"
+							<p class="tc-99" v-if="!$isEmpty(item.garnish_ids)">
+								<svg class="wh-1rem fi-99 va-m"><use xlink:href="#icon_peicai1"></use></svg>
+								<span>{{item.garnish_ids | toGarnishName}}</span>
+							</p>
+							<p class="tc-99" v-if="!$isEmpty(item.goods_remarks)">
+								<svg class="wh-1rem fi-99 va-t"><use xlink:href="#icon_beizhu1"></use></svg>
+								<span>{{item.goods_remarks | toGoodsRemark}}</span>
+							</p>
+							<counter-goods
 								:goods-count="item.goods_count" 
 								:goods-index="index"
 								:counter-title="item.total_price"
@@ -69,8 +73,32 @@
 			toTasteName(tid){
 				return getTasteName(tid) || `T${tid}?`;
 			},
-			toGarnishName(gid){
-				return getGarnishName(gid) || `G${gid}?`;
+			toGarnishName(gids){
+				let output = "";
+				for(let gid in gids){
+					let gname = getGarnishName(gid) || `G${gid}?`;
+					if(!output.length){
+						output += gname;
+					} else {
+						output += `,${gname}`;
+					}
+					
+					if(gids[gid] > 1){
+						output += ` x${gids[gid]}`; 
+					}
+				}
+				return output;
+			},
+			toGoodsRemark(rids){
+				let output = "";
+				for(let rid in rids){
+					if(!output.length){
+						output += rids[rid];
+					} else {
+						output += `,${rids[rid]}`;
+					}
+				}
+				return output;
 			}
 		},
 		components:{ counterGoods },

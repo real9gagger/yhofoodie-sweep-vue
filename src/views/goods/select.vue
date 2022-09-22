@@ -116,7 +116,7 @@
 	/* 选菜界面 */
 	import * as goodsHelper from '@/apis/goods'
 	import constVars from '@/apis/const'
-	import yhoStore from '@/utils/store'
+	import yhoStore from '@/utils/yhostore'
 	import chooseGoods from './choose'
 	import counterGoods from './counter'
 	import alacarteGoods from './alacartegoods'
@@ -159,10 +159,9 @@
 				//console.log(goods);
 			});
 		},
-		beforeRouteLeave(to, from , next){//保存上次滚动到的地方
+		deactivated(){//保存上次滚动到的地方
 			this.lastLeftScrollTop = $("#leftMenuContainer").scrollTop();
 			this.lastRightScrollTop = $("#rightMenuContainer").scrollTop();
-			next();
 		},
 		activated(){
 			this.$nextTick(function(){ //返回上次滚动到的地方
@@ -184,10 +183,7 @@
 			onGoodsClicked(evt, ginfos){
 				let imgWhRatio = 0;
 				if(ginfos.goods_thumb){
-					let domImgBox = $(evt.currentTarget).find("img").get(0);
-					if(!domImgBox.src.endsWith("LOADING_FAILED")){//不是加载失败的图片
-						imgWhRatio = (domImgBox.naturalHeight / domImgBox.naturalWidth) || 0;
-					}
+					imgWhRatio = getImageHwRatio($(evt.currentTarget).find("img").get(0));
 				}
 				
 				yhoStore.onceObject("selected_goods_infos", ginfos); //选中的菜品信息

@@ -1,21 +1,21 @@
 <template>
   <div id="app">
-	<transition @before-enter="onPageBeforeEnter" @enter="onPageEnter" @after-enter="onPageAfterEnter" @leave="onPageLeave" :css="false">
+	<transition 
+		@before-enter="onPageBeforeEnter" 
+		@enter="onPageEnter" 
+		@after-enter="onPageAfterEnter" 
+		@leave="onPageLeave" :css="false">
 		<keep-alive>
 			<router-view v-if="$route.meta.keepAlive"></router-view>
 		</keep-alive>
 	</transition>
-	<transition @before-enter="onPageBeforeEnter" @enter="onPageEnter" @after-enter="onPageAfterEnter" @leave="onPageLeave" :css="false">
+	<transition 
+		@before-enter="onPageBeforeEnter" 
+		@enter="onPageEnter" 
+		@after-enter="onPageAfterEnter" 
+		@leave="onPageLeave" :css="false">
 		<router-view v-if="!$route.meta.keepAlive"></router-view>
 	</transition>
-	<!-- 返回时特效不好控制，弃用 <transition key="RV007" name="page-pullout">
-		<keep-alive>
-			<router-view v-if="$route.meta.keepAlive"></router-view>
-		</keep-alive>
-	</transition>
-	<transition key="RV008" name="page-pullout">
-		<router-view v-if="!$route.meta.keepAlive"></router-view>
-	</transition> -->
   </div>
 </template>
 
@@ -25,8 +25,8 @@ export default {
   name: 'App',
   data(){
 	return {
-		isGoBack1: false,
-		isGoBack2: false
+		isGoBack1: null, //null-首次加载，true-点了返回按钮，false-进入新页面
+		isGoBack2: false //true-点了返回按钮，false-离开当前页面
 	}
   },
   mounted() {
@@ -59,30 +59,26 @@ export default {
 		this.isGoBack2 = true;
 	},
 	onPageBeforeEnter(elem){//进入页面时要固定定位
+		//等于null表示首次加载，此时不需要页面切换动画
+		let transX = (this.isGoBack1 ? -100 : (this.isGoBack1===false ? 100 : 0));
 		$(elem).css({
 			position: "fixed",
 			top: "0px",
 			left: "0px",
 			right: "0px",
 			bottom: "0px",
-			zIndex: "99"
+			zIndex: "99",
+			transform: `translate(${transX}%,0)`, //如果是返回则，往右移动，打开新页面时才往左移动
+			transition: "transform 0.4s"
 		});
-	},
-	onPageEnter(elem, done){//页面进入
-		/* Velocity(elem, { transform: "translateX(0%)" }, { duration: 3000, complete: done }); */
-		
-		$(elem).css({
-			transform: `translate(${this.isGoBack1 ? -100 : 100}%, 0)`, //如果是返回则，往右移动，打开新页面时才往左移动
-			transition: "transform 0.3s"
-		}).one("transitionend", done);
-		
-		setTimeout(function(){
-			elem.style.transform = "translate(0, 0)";
-		}, 10);
-		
 		this.isGoBack1 = false;
 	},
-	onPageAfterEnter(elem){//进入动画执行完，重置
+	onPageEnter(elem, done){//页面进入
+		/* Velocity(elem, { transform: "translateX(0)" }, { duration: 3000, complete: done }); */
+		$(elem).one("transitionend", done);
+		setTimeout(function(){ elem.style.transform = "translate(0,0)" }, 10);
+	},
+	onPageAfterEnter(elem){//进入动画执行完，重置	
 		elem.style.position = null;
 		elem.style.top = null;
 		elem.style.left = null;
@@ -95,7 +91,7 @@ export default {
 	onPageLeave(elem, done){//页面离开
 		$(elem).css({
 			transform: "translate(0, 0)",
-			transition: "transform 0.3s"
+			transition: "transform 0.4s"
 		}).one("transitionend", done);
 		
 		setTimeout(function(transX){
@@ -120,28 +116,4 @@ export default {
   overflow: auto;
   user-select: none;
 }
-/* .page-pullout-enter{ 
-	position: fixed;
-	top:0;
-	left:0;
-	right: 0;
-	bottom: 0;
-	overflow: hidden;
-	z-index: 99;
-	transform: translateX(100%);
-}
-.page-pullout-enter-active{ transition: transform 0.4s }
-.page-pullout-enter-to{
-	position: fixed;
-	top:0;
-	left:0;
-	right: 0;
-	bottom: 0;
-	overflow: hidden;
-	z-index: 99;
-	transform: translateX(0);
-}
-.page-pullout-leave{ transform: translateX(0) }
-.page-pullout-leave-active{ transition: transform 0.4s }
-.page-pullout-leave-to{ transform: translateX(-100%) } */
 </style>
