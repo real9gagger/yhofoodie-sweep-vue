@@ -103,6 +103,7 @@
 		</div>
 		<choose-goods ref="chooseGBox" @change="onChooseChange"></choose-goods>
 		<alacarte-goods ref="alacarteGBox" @confirm="addToCart"></alacarte-goods>
+		<alacarte-package ref="packageGBox" @confirm="addToCart"></alacarte-package>
 	</div>
 </template>
 
@@ -114,6 +115,7 @@
 	import chooseGoods from './choose'
 	import counterGoods from './counter'
 	import alacarteGoods from './alacartegoods'
+	import alacartePackage from './alacartepackage'
 	import backButton from '@/components/BackButton'
 	import skeletonScreen from '@/components/SkeletonScreen'
 	
@@ -140,8 +142,9 @@
 		},
 		components: {
 			chooseGoods,
-			alacarteGoods,
 			counterGoods,
+			alacarteGoods,
+			alacartePackage,
 			backButton,
 			skeletonScreen
 		},
@@ -258,7 +261,13 @@
 					} else {//显示点菜框【显示多规格/口味/配菜弹窗】
 						this.alacarteBtn = arg0.clickedElem;
 						if(arg0.actionValue > 0){
-							this.$refs.alacarteGBox.showMe(ginfos);
+							if(ginfos.is_package_goods){
+								yhoStore.onceObject("selected_goods_infos", ginfos); //选中的菜品信息
+								this.$router.push("/alacartepackage");
+								//this.$refs.packageGBox.showMe(ginfos);
+							} else {
+								this.$refs.alacarteGBox.showMe(ginfos);
+							}
 						} else if (arg0.newCount <= 0){//只有一份，直接删除
 							this.$refs.chooseGBox.reduceGoods(ginfos.id);
 						} else {

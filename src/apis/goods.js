@@ -7,6 +7,7 @@ let cateIDIndexMap = null;
 let specIDNameMap = null;
 let tasteIDNameMap = null;
 let garnishIDNameMap = null;
+let goodsIDObjectMap = null;
 let nowDateTime = null; //避免频繁创建日期对象
 
 //初始化键值对
@@ -30,6 +31,15 @@ function initKeyMaps(code){
 		garnishIDNameMap = {};
 		for(let gobj of shopGoodsData.garnish_list){
 			garnishIDNameMap[gobj.garnish_id] = gobj.goods_garnish_name;
+		}
+	} else if(code === 5){
+		goodsIDObjectMap = {};
+		for(let idx = 0; idx < shopGoodsData.list.length; idx++){
+			if(shopGoodsData.list[idx].id > 3){
+				for(let gobj of shopGoodsData.list[idx].goods_list){
+					goodsIDObjectMap[gobj.id] = gobj;
+				}
+			}
 		}
 	}
 }
@@ -199,6 +209,16 @@ export function getCateObject(cid){
 			initKeyMaps(1);
 		}
 		return shopGoodsData.list[cateIDIndexMap[cid]];
+	}
+	return null;
+}
+
+export function getGoodsObject(gid){
+	if(gid){
+		if(!goodsIDObjectMap){
+			initKeyMaps(5);
+		}
+		return goodsIDObjectMap[gid];
 	}
 	return null;
 }

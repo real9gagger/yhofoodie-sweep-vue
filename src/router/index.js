@@ -26,6 +26,14 @@ let routerList = [
 		}
 	},
 	{
+		path: "/alacartepackage",
+		name: "选择套餐",
+		component: () => import("@/views/goods/alacartepackage"),
+		meta: {
+			keepAlive: false
+		}
+	},
+	{
 		path: "/login",
 		name: "登录页",
 		component: () => import("@/views/login"),

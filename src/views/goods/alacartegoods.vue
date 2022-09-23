@@ -219,7 +219,7 @@
 				if(url){
 					return (constVars.OSS_IMG_PATH + url + constVars.OSS_IMG_SIZE_FOR_LIST);
 				} else {
-					return "/image/foods_icon.png?ts=4444";
+					return "/image/foods_icon.png";
 				}
 			},
 			changeCount(isAdded){//点菜数量
@@ -504,20 +504,20 @@
 	/* 向上滑出动画 */
 	.alacarte-slideup-enter{ 
 		background-color: rgba(0,0,0,0.0);
-		ul { transform: translateY(100%) }
+		> ul { transform: translateY(100%) }
 	}
 	.alacarte-slideup-enter-active{ transition: all 0.4s }
 	.alacarte-slideup-enter-to{
 		background-color: $maskBoxBgColor;
-		ul { transform: translateY(0) }
+		> ul { transform: translateY(0) }
 	}
 	.alacarte-slideup-leave{ 
 		background-color: $maskBoxBgColor;
-		ul { transform: translateY(0) }
+		> ul { transform: translateY(0) }
 	}
 	.alacarte-slideup-leave-active{ transition: all 0.4s }
 	.alacarte-slideup-leave-to{
 		background-color: rgba(0,0,0,0.0);
-		ul { transform: translateY(100%) }
+		> ul { transform: translateY(100%) }
 	}
 </style>

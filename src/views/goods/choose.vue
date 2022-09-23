@@ -114,7 +114,7 @@
 				if(url){
 					return (constVars.OSS_IMG_PATH + url + constVars.OSS_IMG_SIZE_FOR_LIST);
 				} else {
-					return "/image/foods_icon.png?ts=4444";
+					return "/image/foods_icon.png";
 				}
 			},
 			recalcPrice(){//重新计算某些数据
@@ -271,20 +271,20 @@
 	/* 向上滑出动画 */
 	.choose-slideup-enter{ 
 		background-color: rgba(0,0,0,0.0);
-		ul { transform: translateY(100%) }
+		> ul { transform: translateY(100%) }
 	}
 	.choose-slideup-enter-active{ transition: all 0.4s }
 	.choose-slideup-enter-to{
 		background-color: $maskBoxBgColor;
-		ul { transform: translateY(0) }
+		> ul { transform: translateY(0) }
 	}
 	.choose-slideup-leave{ 
 		background-color: $maskBoxBgColor;
-		ul { transform: translateY(0) }
+		> ul { transform: translateY(0) }
 	}
 	.choose-slideup-leave-active{ transition: all 0.4s }
 	.choose-slideup-leave-to{
 		background-color: rgba(0,0,0,0.0);
-		ul { transform: translateY(100%) }
+		> ul { transform: translateY(100%) }
 	}
 </style>
