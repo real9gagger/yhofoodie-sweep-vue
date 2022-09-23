@@ -35,26 +35,20 @@
 								</div>
 								<div class="fx-g1 fx-c pd-l-rem5">
 									<p class="select-goods-name">{{subitem.goods_name}}</p>
-									<p class="pd-t-rem3 tc-99 fs-12px" v-if="subitem.sales != 0">
-										<span>销量 {{subitem.sales}}</span>
-									</p>
-									<p class="pd-t-rem3 tc-99 fs-12px" v-if="subitem.goods_material && subitem.goods_material.length <= 30">
-										<span>{{subitem.goods_material}}</span>
-									</p>
+									<p class="pd-t-rem3 tc-99 fs-12px" v-if="subitem.sales != 0">销量 {{subitem.sales}}</p>
+									<p class="pd-t-rem3 tc-99 fs-12px" v-if="subitem.goods_material && subitem.goods_material.length <= 30">{{subitem.goods_material}}</p>
 									<p class="fx-g1"><!--占位专用--></p>
-									<template v-if="!item.isAvailableCate || subitem.status != 1">
-										<p class="tc-99 fw-b fx-g1">{{subitem.goods_price}}</p>
-										<p class="tc-99 fs-rem7">不在可售时间范围内</p>
-									</template>
-									<template v-else >
-										<counter-goods 
-											:goods-count="chooseInfo[item.cate_key + subitem.goods_key]" 
-											:cate-index="ix0"
-											:goods-index="ix1"
-											:multiple-choice="subitem.is_multiple_choice" 
-											:counter-title="subitem.goods_price"
-											@change="addToCart"></counter-goods>
-									</template>
+									<p v-if="!item.isAvailableCate || subitem.status != 1" class="tc-99 fx-r">
+										<b>{{subitem.goods_price}}</b>
+										<span class="fx-g1 pd-l-rem5 ta-r">不在可售时间内</span>
+									</p>
+									<counter-goods v-else 
+										:goods-count="chooseInfo[item.cate_key + subitem.goods_key]" 
+										:cate-index="ix0"
+										:goods-index="ix1"
+										:multiple-choice="subitem.is_multiple_choice" 
+										:counter-title="subitem.goods_price"
+										@change="addToCart"></counter-goods>
 								</div>
 							</div>
 						</li>
@@ -201,7 +195,7 @@
 				let indexArr = [];
 				
 				goodsHelper.resetDateTime(); //必须调用！
-				
+
 				$.each(goodsList, function(idx, cate){
 					if(cate.id > 2){
 						cate.isAvailableCate = goodsHelper.isCateInSaleableTime(cate, false);
@@ -219,7 +213,7 @@
 						cate.isAvailableCate = true;
 					}
 				});
-				
+
 				for(let idx of indexArr){
 					for(let e_e of goodsList[idx].goods_list){
 						let cobj = goodsHelper.getCateObject(e_e.goods_cate_id);

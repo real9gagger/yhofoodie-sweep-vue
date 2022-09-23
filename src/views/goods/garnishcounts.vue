@@ -16,7 +16,7 @@
 					<svg v-if="limitType" class="wh-1rem fi-cc mg-l-rem5"><use xlink:href="#icon_info1"></use></svg>
 				</p>
 				<p class="fx-r fx-mc pd-tb-1rem">
-					<a class="btnbox fx-g1 bg-f0 tc-33" @click="setCount(2)">删除</a>
+					<a class="btnbox fx-g1 bg-f0 tc-mc" @click="setCount(2)">删除</a>
 					<a class="btnbox fx-g1 mg-l-1rem bg-mc tc-ff" @click="setCount(3)">确定</a>
 				</p>
 			</div>

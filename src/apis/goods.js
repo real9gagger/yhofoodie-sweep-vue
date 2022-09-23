@@ -217,9 +217,8 @@ export function getSpecName(sid, separator){
 		} else {
 			return (specIDNameMap[sid] || "");
 		}
-	} else {
-		return "";
 	}
+	return "";
 }
 
 export function getTasteName(tid, separator){
@@ -236,9 +235,8 @@ export function getTasteName(tid, separator){
 		} else {
 			return (tasteIDNameMap[tid] || "");
 		}
-	} else {
-		return "";
 	}
+	return "";
 }
 
 export function getGarnishName(gid, separator){
@@ -255,9 +253,8 @@ export function getGarnishName(gid, separator){
 		} else {
 			return (garnishIDNameMap[gid] || "");
 		}
-	} else {
-		return "";
 	}
+	return "";
 }
 
 //判断分类是否在可售时间

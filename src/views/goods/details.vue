@@ -40,7 +40,7 @@
 				<p class="fw-b">商品详情</p>
 				<p class="fx-r mg-t-rem5 tc-66">
 					<span class="fx-g1">菜谱</span>
-					<span class="fx-g3 pd-l-rem5">{{goodsInfo.cookbook_id}}</span>
+					<span class="fx-g3 pd-l-rem5">{{cookbookNames}}</span>
 				</p>
 				<p class="fx-r mg-t-rem5 tc-66">
 					<span class="fx-g1">分类</span>
@@ -111,7 +111,8 @@
 	import yhoStore from '@/utils/yhostore'
 	import bottomLine from '@/components/BottomLine'
 	import { getCateName, getSpecName, getTasteName, getSaleableTimeRange, getRecommendGoods } from '@/apis/goods'
-
+	import { getCookboookName } from '@/apis/shop_data'
+	
 	export default {
 		name: "goodsDetails",
 		data(){
@@ -150,6 +151,13 @@
 				} else {
 					return "";
 				}
+			},
+			cookbookNames(){
+				if(this.goodsInfo){
+					return getCookboookName(this.goodsInfo.cookbook_id, ", ");
+				} else {
+					return "-";
+				}
 			}
 		},
 		beforeDestroy(){
@@ -167,7 +175,7 @@
 				$mine.cateName = getCateName($mine.goodsInfo.goods_cate_id, params.cname);
 				$mine.saleableTimeRange = getSaleableTimeRange($mine.goodsInfo);
 				$mine.picDefHeight = Math.floor(window.innerWidth * params.ratio - 0.5); //减去一个调整值
-				$mine.recommendList = getRecommendGoods($mine.goodsInfo.goods_cate_id);
+				//$mine.recommendList = getRecommendGoods($mine.goodsInfo.goods_cate_id);
 			} else {
 				$mine.goodsInfo = null;
 				$mine.remainingTimerID = setInterval(function(){

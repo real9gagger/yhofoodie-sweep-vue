@@ -101,7 +101,7 @@ function onImageLoadingError(){
 //获取图片高度除以宽度的比例
 function getImageHwRatio(imgDom){
 	let hwRatio = 0;
-	if(imgDom.src && !imgDom.src.endsWith("LOADING_FAILED")){//不是加载失败的图片
+	if(imgDom && imgDom.src && !imgDom.src.endsWith("LOADING_FAILED")){//不是加载失败的图片
 		hwRatio = (imgDom.naturalHeight / imgDom.naturalWidth);
 	}
 	return (hwRatio || 0);
@@ -216,7 +216,7 @@ function throwGoodsToGwc(fromElem, toElem) {
 //购物车菜品ID，要保证唯一性
 function newCartID(){
 	let randNum = Math.floor(Math.random() * 1000).toString();
-	if(randNum < 1000){
+	if(randNum.length < 3){
 		randNum = "00000000".substring(0, 3 - randNum.length) + randNum; //开头补足0
 	}
 	return (Date.now().toString()) + randNum; //16位数字
