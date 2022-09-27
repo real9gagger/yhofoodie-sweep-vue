@@ -1,20 +1,20 @@
 <template>
 	<transition name="choose-slideup">
-		<div v-if="isShowChoose" class="choose-goods-container fx-c">
+		<div v-if="isShowPanel" class="choose-goods-container fx-c">
 			<h4 class="fx-g1" @click="showList()"><!--占位专用--></h4>
 			<ul>
 				<li class="ps-s bg-ff">
 					<div class="fx-r hi-f fx-mc pd-lr-rem5 pd-t-rem5">
-						<b class="pd-tb-rem5 pd-l-rem5">已点菜品 {{cartGoodsCount}}</b>
+						<b class="pd-tb-rem5 pd-l-rem5">已点菜品 {{cartTotalInfo.total_count}}</b>
 						<a class="pd-rem5" @click="changeCount(0, 2)"><svg class="choose-header-icon"><use xlink:href="#icon_clearall"></use></svg></a>
 						<b class="pd-l-rem5">用餐人数 {{numberofDining}}</b>
 						<a class="pd-rem5"><svg class="choose-header-icon"><use xlink:href="#icon_edit1"></use></svg></a>
 						<a class="pd-rem5 fx-g1 ta-r" @click="showList()"><svg class="choose-header-icon"><use xlink:href="#icon_close1"></use></svg></a>
 					</div>
 				</li>
-				<li v-for="(item,index) in chooseList" :key="item.cart_id">
+				<li v-for="(item,index) in cartGoodsList" :key="item.cart_id">
 					<div class="fx-r choose-goods-item">
-						<img :src="getSrc(item.goods_thumb)" />
+						<goods-image :pic-src="item.goods_thumb" box-size="small"></goods-image>
 						<div class="fx-g1 pd-l-rem5">
 							<p class="fw-b">{{item.goods_name}}</p>
 							<p class="tc-99">
@@ -50,33 +50,31 @@
 </template>
 
 <script>
-	import constVars from '@/apis/const'
+	import { mapGetters } from 'vuex'
 	import { getSpecName, getTasteName, getGarnishName } from '@/apis/goods'
 	import counterGoods from './counter'
+	import goodsImage from '@/components/GoodsImage'
 	
 	export default {
 		name: "goodsChoose",
 		data(){
 			return {
-				chooseList: [], //已选择的菜品
-				cartGoodsCount: 0,
-				cartTotalPrice: "0.00",
 				cartAddingTimerID: 0,
 				numberofDining: 1, //用餐人数
-				isShowChoose: false //是否显示已点
+				isShowBox: false //是否显示已点
 			}
 		},
 		filters:{
 			toSpecName(sid){
-				return getSpecName(sid) || `S${sid}?`;
+				return getSpecName(sid) || `[S${sid}]`;
 			},
 			toTasteName(tid){
-				return getTasteName(tid) || `T${tid}?`;
+				return getTasteName(tid) || `[T${tid}]`;
 			},
 			toGarnishName(gids){
 				let output = "";
 				for(let gid in gids){
-					let gname = getGarnishName(gid) || `G${gid}?`;
+					let gname = getGarnishName(gid) || `[G${gid}]`;
 					if(!output.length){
 						output += gname;
 					} else {
@@ -101,69 +99,28 @@
 				return output;
 			}
 		},
-		components:{ counterGoods },
+		computed: {
+			isShowPanel(){
+				return (this.isShowBox && this.cartGoodsList.length > 0);
+			},
+			...mapGetters(["cartGoodsList", "cartTotalInfo"])
+		},
+		components:{ counterGoods, goodsImage },
 		methods:{
 			showList(){
-				if(!this.chooseList.length){
-					this.isShowChoose = false;
-				} else {
-					this.isShowChoose = !this.isShowChoose;
-				}
-			},
-			getSrc(url){
-				if(url){
-					return (constVars.OSS_IMG_PATH + url + constVars.OSS_IMG_SIZE_FOR_LIST);
-				} else {
-					return "/image/foods_icon.png";
-				}
-			},
-			recalcPrice(){//重新计算某些数据
-				let sum1 = 0;
-				let sum2 = 0;
-				let obj0 = {};
-				let key0 = ""; 
-				
-				for(let item of this.chooseList){
-					sum1 += item.goods_count;
-					sum2 = accAdd(sum2, item.total_price);
-					key0 = (item.cate_key + item.goods_key);
-					
-					if(!obj0[item.cate_key]){
-						obj0[item.cate_key] = item.goods_count;
-					} else {
-						obj0[item.cate_key] += item.goods_count;
-					}
-					
-					if(!obj0[key0]){
-						obj0[key0] = item.goods_count;
-					} else {
-						obj0[key0] += item.goods_count;
-					}
-				}
-				
-				this.cartGoodsCount = sum1;
-				this.cartTotalPrice = toFixed2(sum2);
-				
-				if(this.cartGoodsCount === 0){
-					this.isShowChoose = false;
-				}
-				//console.log(obj0);
-				obj0.total_price = this.cartTotalPrice;
-				obj0.total_count = this.cartGoodsCount;
-
-				this.$emit("change", obj0);
+				this.isShowBox = !this.isShowBox;
 			},
 			checkGoods(ukey){//判断菜品是否已被添加过了
-				for(let nth in this.chooseList){
-					if(this.chooseList[nth].unique_key === ukey){
+				for(let nth in this.cartGoodsList){
+					if(this.cartGoodsList[nth].unique_key === ukey){
 						return nth;
 					}
 				}
 				return -1;
 			},
 			findGoods(gid){
-				for(let nth in this.chooseList){
-					if(this.chooseList[nth].goods_id === gid){
+				for(let nth in this.cartGoodsList){
+					if(this.cartGoodsList[nth].goods_id === gid){
 						return nth;
 					}
 				}
@@ -171,9 +128,9 @@
 			},
 			changeCount(nth, isAdds){
 				if(isAdds === 2){//清空
-					this.chooseList.splice(0);//清空
+					this.$store.commit("clearGoodsFromCart");//清空购物车
 				} else {
-					let temp = this.chooseList[nth];
+					let temp = this.cartGoodsList[nth];
 					if(isAdds === 1 || isAdds === 3){
 						temp.goods_count++;
 						temp.total_price = toFixed2(accMul(temp.unit_price, temp.goods_count));
@@ -181,13 +138,13 @@
 						if(temp.goods_count > 1){
 							temp.goods_count--;
 							temp.total_price = toFixed2(accMul(temp.unit_price, temp.goods_count));
-						} else {//删除某个菜品
-							this.chooseList.splice(nth, 1);
+						} else {
+							this.$store.commit("removeGoodsFromCart", nth);//删除某个菜品
 						}
 					}
 				}
 				if(isAdds < 3){
-					this.recalcPrice();
+					this.$store.commit("recalcTotalPrice");//重新计算
 				}
 			},
 			counterChange(arg0){
@@ -200,12 +157,14 @@
 				
 				var existsIndex = $mine.checkGoods(ginfos.unique_key);
 				if(existsIndex < 0){//如果菜品没有被添加过
-					this.chooseList.push(ginfos);
+					this.$store.commit("addGoodsToCart", ginfos);
 				} else {
 					$mine.changeCount(existsIndex, 3);
 				}
 				
-				$mine.cartAddingTimerID = setTimeout($mine.recalcPrice, 500);
+				$mine.cartAddingTimerID = setTimeout(function(){
+					$mine.$store.commit("recalcTotalPrice"); //重新计算
+				}, 500);
 			},
 			reduceGoods(gid){//减少菜品数量
 				let existsIndex = this.findGoods(gid);

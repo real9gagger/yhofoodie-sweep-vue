@@ -48,8 +48,10 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 
 .us-n{user-select:none}
 
+/* tap */
 .tp-dim:active{background-image:linear-gradient(0deg,rgba(0,0,0,0.1) 0px,rgba(0,0,0,0.1) 100%)}
-.tp-dim-less:active{background-image:linear-gradient(0deg,rgba(0,0,0,0.0) 0px,rgba(0,0,0,0.1) 1px,rgba(0,0,0,0.1) 100%)}
+.tp-dim-less:active{background-image:linear-gradient(0deg,rgba(0,0,0,0.05) 1px,rgba(0,0,0,0.05) 100%)}
+.tp-f0:active{background-color: #f0f0f0}
 
 /***************************************************** HTML基准字体大小 100px **************************************************************/
 .fs-0{font-size:0}
@@ -366,6 +368,7 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 .tc-mc{color:var(--main-color)}
 
 .bg-mc{background-color:var(--main-color)}
+.bg-mcff{background-color:var(--main-color);color:#fff}
 .bg-ih{background-color:inherit}
 .bg-ff{background-color:#ffffff}
 .bg-fc{background-color:#fcfcfc}

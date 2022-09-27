@@ -5,18 +5,19 @@
 				<p class="garnish-counts-close" @click="setCount(9)"><svg><use xlink:href="#icon_close1"></use></svg></p>
 				<p class="pd-tb-1rem fw-b fs-1rem">{{garnishInfo.garnish_id | toGarnishName}}</p>
 				<p class="fx-r fx-mc">
-					<a class="pd-lr-1rem" @click="setCount(0)" :class="{disabled: newCount <= 1}"><svg class="wh-1rem5 fi-mc"><use xlink:href="#icon_jian1"></use></svg></a>
+					<a class="pd-lr-1rem" @click="setCount(0)" :class="{'disabled': newCount <= 1}"><svg class="wh-1rem5 fi-mc"><use xlink:href="#icon_jian1"></use></svg></a>
 					<span class="ta-c wi-2rem fs-1rem">{{newCount}}</span>
-					<a class="pd-lr-1rem" @click="setCount(1)" :class="{disabled: newCount >= maxCount}"><svg class="wh-1rem5 fi-mc"><use xlink:href="#icon_jia2"></use></svg></a>
+					<a class="pd-lr-1rem" @click="setCount(1)" :class="{'disabled': newCount >= maxCount, 'op-6': isOverLimiting}"><svg class="wh-1rem5 fi-mc"><use xlink:href="#icon_jia2"></use></svg></a>
 				</p>
 				<p class="tc-mc fx-r fx-mc mg-t-1rem" @click="gotoDesc()">
 					<span>+{{totalPrice}}</span>
-					<span v-if="limitType === 1">，仅限 {{maxCount}} 份</span>
-					<span v-else-if="limitType === 2">，最多 {{maxCount}} 份</span>
-					<svg v-if="limitType" class="wh-1rem fi-cc mg-l-rem5"><use xlink:href="#icon_info1"></use></svg>
+					<template v-if="maxCount !== 88888888">
+						<span class="pd-l-rem5">限 {{maxCount}} 份</span>
+						<svg class="wh-1rem fi-cc mg-l-rem5"><use xlink:href="#icon_info1"></use></svg>
+					</template>
 				</p>
 				<p class="fx-r fx-mc pd-tb-1rem">
-					<a class="btnbox fx-g1 bg-f0 tc-mc" @click="setCount(2)">删除</a>
+					<a class="btnbox fx-g1 bg-f0 tc-mc" @click="setCount(2)">取消</a>
 					<a class="btnbox fx-g1 mg-l-1rem bg-mc tc-ff" @click="setCount(3)">确定</a>
 				</p>
 			</div>
@@ -33,13 +34,13 @@
 			return {
 				newCount: 0,
 				maxCount: 0,
-				limitType: 0,//1-仅限X份，2-最多X份
+				limitCount: 0,
 				garnishInfo: null
 			}
 		},
 		filters: {
 			toGarnishName(gid){
-				return getGarnishName(gid) || `G${gid}?`;
+				return getGarnishName(gid) || `[A${gid}]`;
 			}
 		},
 		computed: {
@@ -48,28 +49,18 @@
 					return toFixed2(accMul(this.garnishInfo.goods_price, this.newCount));
 				}
 				return "0.00";
+			},
+			isOverLimiting(){//是否超出限制
+				return (this.limitCount && this.newCount >= this.limitCount);
 			}
 		},
 		methods:{
-			showMe(infos, elem, limits){
+			showMe(infos, elem, limits, counts){
 				if(infos){
-					this.garnishInfo = infos;
 					this.newCount = infos.garnish_count;
-					
-					let max1 = +limits || 0;
-					let max2 = +infos.maxcount || 0;
-					
-					if(max1 > 0){//不能大于最大可选配菜份数
-						this.maxCount = Math.max(max1 + this.newCount, 0);//加号！
-						this.limitType = 2;
-					} else if(max2 > 0){//不能大于此份配菜的最大可选数量
-						this.maxCount = max2;
-						this.limitType = 1;
-					} else{
-						this.maxCount = 88888888;
-						this.limitType = 0;
-					}
-					
+					this.limitCount = (limits ? Math.max(limits - counts, 0) + this.newCount : 0);//菜品最多可选配菜数量。要加上已选数量！
+					this.maxCount = (+infos.maxcount || 88888888);//当前配菜最大可选数量
+					this.garnishInfo = infos;
 					this.showBox(elem);
 				} else {
 					this.garnishInfo = null;
@@ -86,12 +77,14 @@
 						this.newCount--;
 					}
 				}else if (action===1){//加
-					if(this.newCount >= this.maxCount){
+					if(this.isOverLimiting){
+						return !yhoToast("已达到最大可选数量");
+					}else if(this.newCount >= this.maxCount){
 						return;
 					} else{
 						this.newCount++;
 					}
-				}else if (action===2) {//删除
+				}else if (action===2) {//取消选择
 					this.garnishInfo.garnish_count = 0;
 					this.garnishInfo = null;
 					this.$emit("confirm", 0);
@@ -154,7 +147,6 @@
 		z-index: 30;
 		background-color: rgba(0,0,0,0.6);
 	}
-	
 	.garnish-counts-container{
 		position: absolute;
 		top: 0;
@@ -168,7 +160,6 @@
 		transform-origin: 0 0 0;
 		overflow: hidden;
 	}
-	
 	.garnish-counts-close{
 		position: absolute;
 		top: 0;

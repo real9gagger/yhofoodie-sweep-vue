@@ -1,7 +1,7 @@
 <template>
 	<div class="fx-hc pd-tb-1rem">
 		<span class="bottom-line-span"></span>
-		<span class="pd-lr-rem5 tc-cc fs-12px"><slot></slot></span>
+		<span class="pd-lr-rem5 tc-cc fs-rem6"><slot></slot></span>
 		<span class="bottom-line-span"></span>
 	</div>
 </template>

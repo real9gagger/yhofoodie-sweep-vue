@@ -62,4 +62,17 @@ yhoStore.prototype.onceObject = function(name, obj){
 	return null;
 }
 
-export default (new yhoStore())
+yhoStore.prototype.onceString = function(name, obj){
+	if(obj === undefined){
+		return sessionStorage.getItem(this.NAME_PREFIX + name);
+	} else if (obj === null){
+		sessionStorage.removeItem(this.NAME_PREFIX + name);
+	} else {
+		sessionStorage.setItem(this.NAME_PREFIX + name, obj);
+	}
+	return null;
+}
+
+let storeHelper = new yhoStore();
+
+export default storeHelper

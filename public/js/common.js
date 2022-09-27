@@ -221,3 +221,30 @@ function newCartID(){
 	}
 	return (Date.now().toString()) + randNum; //16位数字
 }
+
+//吐司提示
+function yhoToast(msg, duration){
+	if(msg){
+		let $msgbox = $(document.body).children(".yho-toast-box");
+		if($msgbox.length){
+			clearTimeout($msgbox.data("yhoToastTimerID1"));
+			clearTimeout($msgbox.data("yhoToastTimerID2"));
+			$msgbox.html(msg);
+		} else {
+			$msgbox = $(`<div class="yho-toast-box">${msg}</div>`).appendTo(document.body);
+		}
+		
+		let tid1 = setTimeout(function(){
+			let posX = Math.round((window.innerWidth - $msgbox.innerWidth()) / 2);
+			$msgbox.css({ "left": posX, "opacity": 1 });
+		}, 50);
+		
+		let tid2 = setTimeout(function(){
+			$msgbox.one("transitionend", function () {
+				$(this).remove();
+			}).css("opacity", 0);
+		}, Math.max(+duration || 0, 2000));//最小 2 秒
+		
+		$msgbox.data("yhoToastTimerID1", tid1).data("yhoToastTimerID2", tid2);
+	}
+}

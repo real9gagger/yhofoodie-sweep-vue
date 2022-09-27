@@ -13,11 +13,11 @@
 						<svg class="details-svg-icon3"><use xlink:href="#icon_zhankai1"></use></svg>
 					</p>
 					<p class="fw-b mg-t-rem3 fs-1rem">{{goodsInfo.goods_name}}</p>
-					<p class="fx-hc mg-t-rem3 fs-12px" v-if="goodsInfo.sn">
+					<p class="fx-hc mg-t-rem3 fs-rem6" v-if="goodsInfo.sn">
 						<svg class="details-svg-icon1"><use xlink:href="#icon_sn"></use></svg>
 						<span class="tc-66">{{goodsInfo.sn}}</span>
 					</p>
-					<p class="fx-hc tc-99 mg-t-rem3 fs-12px" v-if="hasTags">
+					<p class="fx-hc tc-99 mg-t-rem3 fs-rem6" v-if="hasTags">
 						<template v-if="goodsInfo.is_hot == 1">
 							<svg class="details-svg-icon2"><use xlink:href="#icon_rexiao"></use></svg>
 							<span class="pd-r-rem5">热销</span>
@@ -32,9 +32,9 @@
 						</template>
 					</p>
 					<p class="tc-mc mg-t-rem5">
-						<span class="fs-12px">RM </span>
+						<span class="fs-rem6">RM </span>
 						<b class="fs-1rem2">{{goodsInfo.goods_price}}</b>
-						<span class="fs-12px" v-if="goodsInfo.goods_unit"> / {{goodsInfo.goods_unit}}</span>
+						<span class="fs-rem6" v-if="goodsInfo.goods_unit"> / {{goodsInfo.goods_unit}}</span>
 					</p>
 				</div>
 				<div class="details-box-item swipe-handler">

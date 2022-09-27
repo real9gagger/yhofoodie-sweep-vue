@@ -2,10 +2,10 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import MuseUI from 'muse-ui'
 import App from './App.vue'
-import YhoRouters from './router'
+import YhoRouter from './router'
 import YhoLange from './apis/lange'
 import YhoAjaxer from './apis/ajaxer'
-import vuexStore from '@/utils/vuexstore'
+import VuexStore from '@/utils/vuexstore'
 import 'muse-ui/dist/muse-ui.css'
 
 MuseUI.theme.add('museteal', {/*自定义主题色*/
@@ -24,6 +24,6 @@ Vue.use(MuseUI)
 
 new Vue({
   render: h => h(App),
-  store: vuexStore,
-  router: YhoRouters
+  store: VuexStore,
+  router: YhoRouter
 }).$mount('#app')

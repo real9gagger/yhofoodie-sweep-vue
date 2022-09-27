@@ -8,12 +8,19 @@
 </template>
 
 <script>
+	import yhoStore from '@/utils/yhostore'
+	import { getShopDatas } from '@/apis/shop_data'
+	
 	export default {
 		name: "homeIndex",
 		data(){
 			return {
 				
 			}
+		},
+		created(){
+			yhoStore.onceString("user_login_token", Date.now());
+			getShopDatas();
 		},
 		methods: {
 			gotoWork(){

@@ -1,6 +1,6 @@
 <template>
 	<div class="hi-f fx-c">
-		<div class="fx-hc pd-lr-rem5 bd-b-f0" style="height:3rem">
+		<div class="fx-hc pd-lr-rem5 bd-b-f0 hi-3rem">
 			<back-button title="T01"></back-button>
 			<div class="ps-r fx-g1 pd-l-1rem">
 				<input class="select-search-input" placeholder="搜一搜" type="search" autocomplete="off" />
@@ -18,7 +18,7 @@
 						<svg v-else-if="item.id==1"><use xlink:href="#icon_tuijian"></use></svg>
 						<svg v-else-if="item.id==2"><use xlink:href="#icon_rexiao"></use></svg>
 						<span>{{item.goods_cate_name}}</span>
-						<span class="cate-counts" v-if="chooseInfo[item.cate_key]">{{chooseInfo[item.cate_key]}}</span>
+						<span class="cate-counts" v-if="cartTotalInfo[item.cate_key]">{{cartTotalInfo[item.cate_key]}}</span>
 						<i class="inverse-corner"><!--反向圆角--></i>
 					</li>
 				</ul>
@@ -29,21 +29,18 @@
 					<ul class="select-right-menu" :key="item.cate_key">
 						<li v-for="subitem,ix1 in item.goods_list" :key="subitem.goods_key">
 							<div class="fx-r" @click="onGoodsClicked($event, subitem)">
-								<div>
-									<img v-if="subitem.goods_thumb" :src="getGoodsPic(subitem.goods_thumb)" loading="lazy" onerror="onImageLoadingError()" />
-									<p v-else class="select-no-pic">{{subitem.goods_name[0]}}</p>
-								</div>
+								<goods-image :pic-src="subitem.goods_thumb" :goods-name="subitem.goods_name"></goods-image>
 								<div class="fx-g1 fx-c pd-l-rem5">
 									<p class="select-goods-name">{{subitem.goods_name}}</p>
-									<p class="pd-t-rem3 tc-99 fs-12px" v-if="subitem.sales != 0">销量 {{subitem.sales}}</p>
-									<p class="pd-t-rem3 tc-99 fs-12px" v-if="subitem.goods_material && subitem.goods_material.length <= 30">{{subitem.goods_material}}</p>
+									<p class="pd-t-rem3 tc-99 fs-rem6" v-if="subitem.sales != 0">销量 {{subitem.sales}}</p>
+									<p class="pd-t-rem3 tc-99 fs-rem6" v-if="subitem.goods_material && subitem.goods_material.length <= 30">{{subitem.goods_material}}</p>
 									<p class="fx-g1"><!--占位专用--></p>
 									<p v-if="!item.isAvailableCate || subitem.status != 1" class="tc-99 fx-r">
 										<b>{{subitem.goods_price}}</b>
 										<span class="fx-g1 pd-l-rem5 ta-r">不在可售时间内</span>
 									</p>
 									<counter-goods v-else 
-										:goods-count="chooseInfo[item.cate_key + subitem.goods_key]" 
+										:goods-count="cartTotalInfo[item.cate_key + subitem.goods_key]" 
 										:cate-index="ix0"
 										:goods-index="ix1"
 										:multiple-choice="subitem.is_multiple_choice" 
@@ -78,12 +75,12 @@
 		</div>
 		<div class="fx-r select-bottom-container">
 			<div class="fx-g1 ps-r">
-				<p class="select-cart-box fx-c fx-mc" @click="showChooseList()" :class="{nogoods: !chooseInfo.total_count}" id="myChooseCartBox">
-					<b class="dp-bk tc-ff fs-12px lh-1x">{{chooseInfo.total_count || 0}}</b>
+				<p class="select-cart-box fx-c fx-mc" @click="showChooseList()" :class="{nogoods: !cartTotalInfo.total_count}" id="myChooseCartBox">
+					<b class="dp-bk tc-ff fs-rem6 lh-1x">{{cartTotalInfo.total_count}}</b>
 					<svg class="wh-1rem2 fi-ff"><use xlink:href="#icon_gouwuche"></use></svg>
 				</p>
 				<p class="pd-l-4rem5 tc-ff wh-f fx-hc">
-					<span><i class="fs-12px">RM&nbsp;</i><b class="fs-1rem2">{{chooseInfo.total_price || "0.00"}}</b></span>
+					<span><i class="fs-rem6">RM&nbsp;</i><b class="fs-1rem2">{{cartTotalInfo.total_price}}</b></span>
 				</p>
 			</div>
 			<div class="hi-f wi-3rem">
@@ -97,27 +94,26 @@
 					<use xlink:href="#icon_spath" fill="url(#spath_lg001)"></use>
 				</svg>
 			</div>
-			<div class="fx-vc tc-ff pd-l-1rem fs-1rem wi-5rem" :class="{disabled: !chooseInfo.total_count}">
+			<div class="fx-vc tc-ff pd-l-1rem fs-1rem wi-5rem" :class="{disabled: !cartTotalInfo.total_count}">
 				<span>选好了</span>
 			</div>
 		</div>
-		<choose-goods ref="chooseGBox" @change="onChooseChange"></choose-goods>
+		<choose-goods ref="chooseGBox"></choose-goods>
 		<alacarte-goods ref="alacarteGBox" @confirm="addToCart"></alacarte-goods>
-		<alacarte-package ref="packageGBox" @confirm="addToCart"></alacarte-package>
 	</div>
 </template>
 
 <script>
 	/* 选菜界面 */
+	import { mapGetters } from 'vuex'
 	import * as goodsHelper from '@/apis/goods'
-	import constVars from '@/apis/const'
 	import yhoStore from '@/utils/yhostore'
 	import chooseGoods from './choose'
 	import counterGoods from './counter'
 	import alacarteGoods from './alacartegoods'
-	import alacartePackage from './alacartepackage'
 	import backButton from '@/components/BackButton'
 	import skeletonScreen from '@/components/SkeletonScreen'
+	import goodsImage from '@/components/GoodsImage'
 	
 	export default {
 		name: "goodsSelect",
@@ -131,22 +127,22 @@
 				isDontHandleScroll: false,//是否处理滚动事件
 				lastLeftScrollTop: 0,
 				lastRightScrollTop: 0,
-				chooseInfo: {},//已选菜品一些信息
 				alacarteBtn: null,//点击的按钮
 			}
 		},
 		computed:{
 			cateName(){
 				return (this.shopGoods[this.cateIndex].goods_cate_name || "");
-			}
+			},
+			...mapGetters(["cartTotalInfo"])
 		},
 		components: {
 			chooseGoods,
 			counterGoods,
 			alacarteGoods,
-			alacartePackage,
 			backButton,
-			skeletonScreen
+			skeletonScreen,
+			goodsImage
 		},
 		mounted() {
 			var $mine = this;
@@ -167,9 +163,6 @@
 			});
 		},
 		methods:{
-			onChooseChange(data){
-				this.chooseInfo = data;
-			},
 			onCateClicked(idx){
 				this.cateIndex = idx;
 				this.isDontHandleScroll = true;
@@ -230,10 +223,6 @@
 				
 				this.shopGoods = Object.freeze(goodsList);
 			},
-			getGoodsPic(path){
-				return "/image/waiter_happy.png"; //测试用
-				//return (constVars.OSS_IMG_PATH + path + constVars.OSS_IMG_SIZE_FOR_LIST);
-			},
 			getOffsetTops(){
 				var $mine = this;
 				$mine.$nextTick(function(){
@@ -264,7 +253,6 @@
 							if(ginfos.is_package_goods){
 								yhoStore.onceObject("selected_goods_infos", ginfos); //选中的菜品信息
 								this.$router.push("/alacartepackage");
-								//this.$refs.packageGBox.showMe(ginfos);
 							} else {
 								this.$refs.alacarteGBox.showMe(ginfos);
 							}
@@ -443,27 +431,10 @@
 			margin-bottom: 1rem;
 			word-break: break-all;
 			transition: transform 0.25s;
-			img {
-				width: 5rem;
-				height: 5rem;
-				background-color: #f0f0f0;
-				border-radius: 0.5rem;
-			}
 			&:active{
-				transform: scale(0.95);
+				opacity: 0.6;
 			}
 		}
-	}
-	
-	.select-no-pic{
-		width: 5rem;
-		height: 5rem;
-		line-height: 5rem;
-		background-color: #f0f0f0;
-		border-radius: 0.5rem;
-		font-size: 2.5rem;
-		color: #ccc;
-		text-align: center;
 	}
 	
 	.select-goods-name{

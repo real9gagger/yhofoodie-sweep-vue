@@ -5,7 +5,7 @@
 			<ul id="alacarteUlBox">
 				<li class="ps-s bg-ff pd-t-1rem pd-b-rem5 pd-lr-rem5">
 					<div class="fx-r">
-						<div @click="gotoDetails($event)"><img :src="getSrc(goodsInfo.goods_thumb)" class="wh-5rem br-rem5 bg-f0"/></div>
+						<goods-image :pic-src="goodsInfo.goods_thumb" @click.native="gotoDetails($event)"></goods-image>
 						<div class="fx-g1 pd-l-rem5">
 							<p class="fw-b fx-r">
 								<span class="fx-g1 fs-1rem">{{goodsInfo.goods_name}}</span>
@@ -40,7 +40,7 @@
 						</div>
 					</div>
 				</li>
-				<li class="pd-rem5">
+				<li class="pd-rem5 tp-f0">
 					<div class="fx-hc">
 						<span class="fw-b fx-g1">数量</span>
 						<a @click="changeCount(0)" class="pd-lr-rem5"><svg class="wh-1rem2 fi-mc"><use xlink:href="#icon_jian1"></use></svg></a>
@@ -48,7 +48,7 @@
 						<a @click="changeCount(1)" class="pd-lr-rem5"><svg class="wh-1rem2 fi-mc"><use xlink:href="#icon_jia1"></use></svg></a>
 					</div>
 				</li>
-				<li class="pd-rem5">
+				<li class="pd-rem5 tp-f0">
 					<div class="fx-hc pd-r-rem5">
 						<b class="fx-g1">打包</b>
 						<mu-switch v-model="isPack"></mu-switch>
@@ -88,13 +88,14 @@
 							<span>{{vxo.garnish_id | toGarnishName}}</span>
 							<span class="dp-bk">
 								<span class="tc-mc">+{{vxo.goods_price}}</span>
-								<template v-if="vxo.garnish_count > 1"><i class="fs-12px">&nbsp;x</i><b>{{vxo.garnish_count}}</b></template>
+								<b v-if="vxo.garnish_count > 1" class="alacarte-mul-sign">{{vxo.garnish_count}}</b>
+								<span v-else-if="vxo.maxcount==1" class="pd-l-rem25 tc-mc">(限1份)</span>
 							</span>
 						</a>
 					</p>
 				</li>
 				<li v-if="goodsInfo.beizhu_list" class="pd-rem5">
-					<p class="fw-b">备注<span class="pd-l-rem5 tc-99">带*为必选</span></p>
+					<p class="fw-b">备注<span v-if="goodsInfo.beizhu_list.length" class="pd-l-rem5 tc-99">带*为必选</span></p>
 					<p style="padding-left:1px">
 						<template v-for="item,index in goodsInfo.beizhu_list">
 							<a v-for="subitem,subindex in item.list"
@@ -109,7 +110,7 @@
 					</p>
 				</li>
 				<li class="ps-s po-b-0 ta-c bg-ff pd-tb-1rem">
-					<div class="wi-col-10 btnbox bg-mc tc-ff" @click="addtoCart">加入购物车</div>
+					<div class="wi-col-10 btnbox bg-mcff" @click="addtoCart">加入购物车</div>
 				</li>
 			</ul>
 			<garnish-counts ref="garnishCountsBox" @confirm="garnishConfirm"></garnish-counts>
@@ -118,12 +119,12 @@
 </template>
 
 <script>
-	import constVars from '@/apis/const'
 	import yhoStore from '@/utils/yhostore'
 	import { mapGetters } from 'vuex'
 	import { getSpecName, getTasteName, getGarnishName } from '@/apis/goods'
-	import { getShopDatas, getRemarkInfo } from '@/apis/shop_data'
+	import { getRemarkInfo } from '@/apis/shop_data'
 	import garnishCounts from './garnishcounts'
+	import goodsImage from '@/components/GoodsImage'
 	
 	/* 菜品点菜框 */
 	export default {
@@ -141,22 +142,21 @@
 		},
 		filters:{
 			toSpecName(sid){
-				return getSpecName(sid) || `S${sid}?`;
+				return getSpecName(sid) || `[S${sid}]`;
 			},
 			toTasteName(tid){
-				return getTasteName(tid) || `T${tid}?`;
+				return getTasteName(tid) || `[T${tid}]`;
 			},
 			toGarnishName(gid){
-				return getGarnishName(gid) || `G${gid}?`;
+				return getGarnishName(gid) || `[A${gid}]`;
 			}
 		},
 		computed: {
 			...mapGetters(["textInputerValue"])
 		},
-		components: { garnishCounts },
+		components: { garnishCounts, goodsImage },
 		mounted() {
 			//var $mine = this;
-			getShopDatas();
 		},
 		deactivated(){//保存上次滚动到的地方
 			this.ulScrollTop = $("#alacarteUlBox").scrollTop() || 0;
@@ -215,13 +215,6 @@
 					this.$emit("confirm", null);
 				}
 			},
-			getSrc(url){
-				if(url){
-					return (constVars.OSS_IMG_PATH + url + constVars.OSS_IMG_SIZE_FOR_LIST);
-				} else {
-					return "/image/foods_icon.png";
-				}
-			},
 			changeCount(isAdded){//点菜数量
 				if(isAdded){
 					this.goodsInfo.goods_count++;
@@ -238,12 +231,16 @@
 				} else if(arg1 === 3){//配菜
 					let temp = this.goodsInfo.garnish_list[arg0];
 					if(!temp.garnish_count){//没有数量
-						this.$set(temp, "garnish_count", 1);
+						if(this.garnishLimit && this.garnishCount >= this.garnishLimit){
+							return !yhoToast(`最多 ${this.garnishLimit} 份`);
+						} else {
+							this.$set(temp, "garnish_count", 1);
+						}
 					} else if(temp.maxcount == 1){//最大可选数量为1，不用弹出对话框
 						temp.garnish_count = 0;
 					} else {//弹出对话框
 						this.garnishIndex = arg0;
-						return !this.$refs.garnishCountsBox.showMe(temp, window.event.currentTarget, this.garnishLimit - this.garnishCount);
+						return !this.$refs.garnishCountsBox.showMe(temp, window.event.currentTarget, this.garnishLimit, this.garnishCount);
 					}
 				}
 				this.recalcPrice();
@@ -377,7 +374,7 @@
 					keyString += `t${newGoods.taste_id}`;
 				}
 				
-				if(ginfos.garnish_list){//用户选的配菜
+				if(this.garnishCount){//用户选的配菜
 					for(let gobj of ginfos.garnish_list){
 						if(gobj.garnish_count){
 							newGoods.garnish_ids[gobj.garnish_id] = gobj.garnish_count;
@@ -414,7 +411,7 @@
 				newGoods.goods_price = goodsPrice;
 				newGoods.unit_price = accAdd(goodsPrice, garnishTotalPrice);
 				newGoods.unique_key = keyString;
-				console.log(newGoods)
+
 				return newGoods;
 			}
 		}
@@ -498,6 +495,14 @@
 			z-index: 1;
 			border-color: $appMainColor;
 			background-color: rgba($mainColorR, $mainColorG, $mainColorB, 0.2);
+		}
+	}
+	.alacarte-mul-sign{
+		padding-left: 0.25rem;
+		&:before{
+			content: "x";
+			font-size: 0.6rem;
+			font-weight: normal;
 		}
 	}
 	

@@ -1,4 +1,5 @@
 import VueRouter from "vue-router"
+import yhoStore from '@/utils/yhostore'
 
 let routerList = [
 	{
@@ -71,7 +72,18 @@ let routerList = [
 	}
 ]
 
-export default new VueRouter({
+let yhoRouter = new VueRouter({
 	routes: routerList,
 	//scrollBehavior: function(to, from, savedPosition){}
 })
+
+//添加导航守卫，用的是 vue-router3，而非4，参见 https://v3.router.vuejs.org/zh/guide/advanced/navigation-guards.html
+yhoRouter.beforeEach((to, from, next) => {
+	if(to.path !== "/" && !yhoStore.onceString("user_login_token")){
+		next("/");
+	} else {
+		next();
+	}
+});
+
+export default yhoRouter;

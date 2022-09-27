@@ -1,4 +1,3 @@
-//import { getLangeType } from './lange'
 import constVars from './const'
 import axios from 'axios'
 
@@ -35,7 +34,7 @@ function initKeyMaps(code){
 	} else if(code === 5){
 		goodsIDObjectMap = {};
 		for(let idx = 0; idx < shopGoodsData.list.length; idx++){
-			if(shopGoodsData.list[idx].id > 3){
+			if(shopGoodsData.list[idx].id > 2){//0-套餐、1-推荐、2-热销
 				for(let gobj of shopGoodsData.list[idx].goods_list){
 					goodsIDObjectMap[gobj.id] = gobj;
 				}
