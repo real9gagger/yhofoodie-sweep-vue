@@ -1,7 +1,11 @@
 <template>
 	<transition name="packagegoods-slideup">
 		<div v-if="goodsInfo" class="packagegoods-box-container" data-close="true" @click="closeMe($event)">
-			<div class="pd-lr-rem5">
+			<div class="pd-lr-rem5" @scroll="boxScroll($event)">
+				<div class="packagegoods-top-bar">
+					<b>{{goodsInfo.goods_name}}</b>
+					<a class="dp-ib pd-lr-1rem fl-r" @click="showMe()"><svg class="wh-rem8 fi-99"><use xlink:href="#icon_close1"></use></svg></a>
+				</div>
 				<div class="fx-r pd-tb-1rem">
 					<goods-image :pic-src="goodsInfo.goods_thumb"></goods-image>
 					<div class="fx-g1 pd-l-rem5">
@@ -228,6 +232,30 @@
 				this.goodsInfo.selected_count = cc;
 				
 				this.showMe();
+			},
+			boxScroll(evt){
+				var elem = evt.currentTarget;
+				var $firstBox = $(elem).children(".packagegoods-top-bar");
+				var boxHei = $firstBox.innerHeight();
+				var sTop = elem.scrollTop;
+				
+				if(sTop === 0){
+					$firstBox.hide();
+				}else if(sTop <= boxHei){
+					$firstBox.show().css({
+						//position: "absolute",
+						//top: sTop,
+						opacity: 0,
+						//transform: "translateY(-100%)",//`translateY(${sTop - boxHei}px)`
+					});
+				} else if($firstBox[0].style.position !== "fixed"){
+					$firstBox.css({
+						//position: "fixed",
+						//top: "10%",
+						opacity:1,
+						//transform: "translateY(0)",
+					});
+				}
 			}
 		}
 	}
@@ -250,8 +278,8 @@
 			left: 0;
 			bottom: 0;
 			z-index: 1;
-			max-height: 90%;
 			width: 100%;
+			max-height: 90%;
 			overflow: auto;
 			transition: inherit;
 			border-radius: 1rem 1rem 0 0;
@@ -291,6 +319,21 @@
 			font-size: 0.6rem;
 			font-weight: normal;
 		}
+	}
+	.packagegoods-top-bar{
+		display: none;
+		position: fixed;
+		top: 10%;
+		left: 0;
+		z-index: 2;
+		width: 100%;
+		padding: 0.5rem 0;
+		text-align: center;
+		background-color: #fff;
+		border-bottom: 1px solid #f0f0f0;
+		transition: opacity 0.5s;
+		opacity: 0;
+		border-radius: 1rem 1rem 0 0;
 	}
 	/* 向上滑出动画 */
 	.packagegoods-slideup-enter{
