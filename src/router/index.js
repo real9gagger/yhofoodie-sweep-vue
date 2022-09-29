@@ -70,7 +70,7 @@ let routerList = [
 	  path: "*",
 	  redirect: "/e404",
 	}
-]
+];
 
 let yhoRouter = new VueRouter({
 	routes: routerList,

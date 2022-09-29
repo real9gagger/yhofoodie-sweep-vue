@@ -280,10 +280,6 @@
 					pp = accAdd(pp, gg.taste_list[gg.taste_index].goods_price);
 				}
 				
-				if(gg.goods_count > 1){
-					pp = accMul(pp, gg.goods_count);
-				}
-				
 				if(gg.garnish_list){
 					let cc = 0;
 					for(let temp of gg.garnish_list){
@@ -293,6 +289,12 @@
 						}
 					}
 					this.garnishCount = cc;
+				}
+				
+				gg.unit_price = pp;//套餐单价，整型，非字符串
+				
+				if(gg.goods_count > 1){
+					pp = accMul(pp, gg.goods_count);
 				}
 				
 				gg.total_price = toFixed2(pp);
@@ -339,7 +341,6 @@
 			},
 			formatGoods(ginfos){
 				let keyString = `g${ginfos.id}`;
-				let goodsPrice = ginfos.goods_price;
 				let newGoods = {
 					"cart_id": newCartID(),
 					"cate_id": ginfos.goods_cate_id,
@@ -347,30 +348,26 @@
 					"goods_name": ginfos.goods_name,
 					"goods_thumb": ginfos.goods_thumb,
 					"goods_count": ginfos.goods_count || 1,
-					"total_price": ginfos.total_price || ginfos.goods_price,
+					"total_price": ginfos.total_price || ginfos.goods_price, //乘上数量后所得总价
+					"unit_price": ginfos.unit_price, //规格+口味+配菜 总价。【单价，未乘以数量】
 					"cate_key": ginfos.cate_key,
 					"goods_key": ginfos.goods_key,
 					"is_package_goods": 0, //0-非套餐，1-套餐
-					"goods_price": "", //规格+口味 总价
 					"spec_id": 0, //规格
 					"taste_id": 0, //口味
 					"garnish_ids": {}, //配菜
-					"unit_price": "", //规格+口味+配菜 总价
 					"unique_key": "", //用来判断当前菜品是否已经添加过了
 					"goods_remarks": {}, //备注
 					"is_pack": this.isPack //是否打包
 				};
-				let garnishTotalPrice = 0;//配菜总价
 				
 				if(ginfos.spec_index >= 0){//用户选的规格
 					newGoods.spec_id = ginfos.spec_list[ginfos.spec_index].spec_id;
-					goodsPrice = ginfos.spec_list[ginfos.spec_index].goods_price;
 					keyString += `s${newGoods.spec_id}`;
 				}
 				
 				if(ginfos.taste_index >= 0){//用户选的口味
 					newGoods.taste_id = ginfos.taste_list[ginfos.taste_index].taste_id;
-					goodsPrice = toFixed2(accAdd(goodsPrice, ginfos.taste_list[ginfos.taste_index].goods_price));
 					keyString += `t${newGoods.taste_id}`;
 				}
 				
@@ -379,10 +376,8 @@
 						if(gobj.garnish_count){
 							newGoods.garnish_ids[gobj.garnish_id] = gobj.garnish_count;
 							if(gobj.garnish_count > 1){
-								garnishTotalPrice = accAdd(garnishTotalPrice, accMul(gobj.goods_price, gobj.garnish_count));
 								keyString += `a${gobj.garnish_id}x${gobj.garnish_count}`;
 							} else {
-								garnishTotalPrice = accAdd(garnishTotalPrice, gobj.goods_price);
 								keyString += `a${gobj.garnish_id}`;
 							}
 						}
@@ -408,8 +403,6 @@
 					keyString += "p1";
 				}
 				
-				newGoods.goods_price = goodsPrice;
-				newGoods.unit_price = accAdd(goodsPrice, garnishTotalPrice);
 				newGoods.unique_key = keyString;
 
 				return newGoods;

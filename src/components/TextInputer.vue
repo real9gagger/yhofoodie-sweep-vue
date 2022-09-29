@@ -1,6 +1,6 @@
 <template>
 	<div class="hi-f bg-f0">
-		<div class="fx-hc bg-mc bg-lg-l1 tc-ff hi-3rem pd-lr-rem5">
+		<div class="fx-hc bg-mcff bg-lg-l1 hi-3rem pd-lr-rem5">
 			<back-button class="fx-g1"></back-button>
 			<div class="fx-g3 ta-c">{{myTitle}}</div>
 			<div class="fx-g1 ta-r" @click="onDone">完成</div>

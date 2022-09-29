@@ -26,4 +26,4 @@ new Vue({
   render: h => h(App),
   store: VuexStore,
   router: YhoRouter
-}).$mount('#app')
+}).$mount('#yhoapp')

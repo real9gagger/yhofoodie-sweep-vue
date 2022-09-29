@@ -1,11 +1,7 @@
 <template>
 	<transition name="packagegoods-slideup">
-		<div v-if="goodsInfo" class="packagegoods-box-container" data-close="true" @click="closeMe($event)">
+		<div v-if="goodsInfo" class="packagegoods-box-container" data-close="true" @click="closeMe1($event)">
 			<div class="pd-lr-rem5" @scroll="boxScroll($event)">
-				<div class="packagegoods-top-bar">
-					<b>{{goodsInfo.goods_name}}</b>
-					<a class="dp-ib pd-lr-1rem fl-r" @click="showMe()"><svg class="wh-rem8 fi-99"><use xlink:href="#icon_close1"></use></svg></a>
-				</div>
 				<div class="fx-r pd-tb-1rem">
 					<goods-image :pic-src="goodsInfo.goods_thumb"></goods-image>
 					<div class="fx-g1 pd-l-rem5">
@@ -69,6 +65,10 @@
 					<button class="wi-col-5 btnbox bg-mcff" @click="onDone(1)">确定</button>
 				</div>
 			</div>
+			<div class="packagegoods-top-bar">
+				<b>{{goodsInfo.goods_name}}</b>
+				<a class="dp-ib pd-lr-1rem pd-tb-rem5 ps-a po-tr-0" @click="closeMe2($event)"><svg class="wh-rem8 fi-99"><use xlink:href="#icon_close1"></use></svg></a>
+			</div>
 			<garnish-counts ref="garnishCountsBox" @confirm="garnishConfirm"></garnish-counts>
 		</div>
 	</transition>
@@ -107,7 +107,7 @@
 		methods:{
 			showMe(ginfos, counts, pci){
 				if(ginfos){
-					if(!ginfos.total_price){
+					if(!ginfos.has_inited){
 						let tprice = ginfos.goods_price;
 						
 						if(this.$isEmpty(ginfos.spec_list)){
@@ -130,12 +130,13 @@
 							ginfos.garnish_list = null;
 						}
 						
+						ginfos.has_inited = true; //已被初始化过了，不必再次初始化
 						ginfos.total_price = tprice;
 						ginfos.garnish_sel_count = (ginfos.garnish_sel_count || 0);//已选配菜数量
 					}
 					
-					this.selectedCount = (ginfos.selected_count || 1);
-					this.limitCount = (counts + this.selectedCount); //需要加上已选数量！
+					this.selectedCount = (ginfos.selected_count || 1);//默认选择数量：1
+					this.limitCount = (counts + ginfos.selected_count); //需要加上已选数量！
 					this.garnishIndex = -1;
 					this.garnishLimit = (+ginfos.garnish_max_count || 0);//配菜最大可选数量
 					this.packageCateIndex = pci;//用于回传给父组件
@@ -144,11 +145,16 @@
 					this.goodsInfo = null;
 				}
 			},
-			closeMe(evt){
+			closeMe1(evt){
 				let elem = (evt.target || evt.srcElement);
 				if(elem.getAttribute("data-close") === "true"){
 					this.showMe();
 				}
+			},
+			closeMe2(evt){
+				let elem = (evt.currentTarget);
+				$(elem).parent().hide();
+				this.showMe();
 			},
 			selectGkp(arg0, arg1){//选择规格、口味、配菜
 				if(arg1 === 1){//规格
@@ -224,38 +230,62 @@
 			onDone(type){
 				let cc = (type === 0 ? 0 : this.selectedCount);
 				
-				this.$emit("confirm", {
-					pcIndex: this.packageCateIndex, //套餐分类索引
-					sgCount: cc //选择的菜品数量
-				});
+				if(cc){
+					this.getGkpInfos();
+				}
 				
 				this.goodsInfo.selected_count = cc;
+				
+				this.$emit("confirm", {
+					pcIndex: this.packageCateIndex, //套餐分类索引
+					itemID: this.goodsInfo.id,
+					sgCount: cc //选择的菜品数量
+				});
 				
 				this.showMe();
 			},
 			boxScroll(evt){
 				var elem = evt.currentTarget;
-				var $firstBox = $(elem).children(".packagegoods-top-bar");
+				var $firstBox = $(elem).next(".packagegoods-top-bar");
 				var boxHei = $firstBox.innerHeight();
 				var sTop = elem.scrollTop;
 				
 				if(sTop === 0){
 					$firstBox.hide();
 				}else if(sTop <= boxHei){
-					$firstBox.show().css({
-						//position: "absolute",
-						//top: sTop,
-						opacity: 0,
-						//transform: "translateY(-100%)",//`translateY(${sTop - boxHei}px)`
-					});
-				} else if($firstBox[0].style.position !== "fixed"){
 					$firstBox.css({
-						//position: "fixed",
-						//top: "10%",
-						opacity:1,
-						//transform: "translateY(0)",
+						display: "block",
+						opacity: 0
+					});
+				} else if($firstBox[0].style.opacity != 1){
+					$firstBox.css({
+						display: "block",
+						opacity: 1
 					});
 				}
+			},
+			getGkpInfos(){
+				var oo = this.goodsInfo;
+				var ss = [];
+				
+				if(oo.spec_index >= 0){
+					ss.push(getSpecName(oo.spec_list[oo.spec_index].spec_id));
+				}
+				
+				if(oo.taste_index >= 0){
+					ss.push(getTasteName(oo.taste_list[oo.taste_index].taste_id));
+				}
+				
+				if(oo.garnish_sel_count > 0){
+					for(let temp of oo.garnish_list){
+						if(temp.garnish_count){
+							ss.push(getGarnishName(temp.garnish_id));
+							break; //只需要获得简短的信息就行，不需要获取完整的信息
+						}
+					}
+				}
+				
+				oo.gkp_infos = ss.join(" ");
 			}
 		}
 	}
@@ -330,8 +360,7 @@
 		padding: 0.5rem 0;
 		text-align: center;
 		background-color: #fff;
-		border-bottom: 1px solid #f0f0f0;
-		transition: opacity 0.5s;
+		transition: opacity 0.75s;
 		opacity: 0;
 		border-radius: 1rem 1rem 0 0;
 	}

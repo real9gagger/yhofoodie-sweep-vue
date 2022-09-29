@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="yhoapp">
 	<transition 
 		@before-enter="onPageBeforeEnter" 
 		@enter="onPageEnter" 
@@ -105,7 +105,7 @@ export default {
 </script>
 
 <style lang="scss">
-#app {
+#yhoapp {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-family: Avenir, Helvetica, Arial, sans-serif;
