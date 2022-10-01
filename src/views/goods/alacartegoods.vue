@@ -20,7 +20,7 @@
 								</template>
 							</p>
 							<p class="tc-66 fs-rem7" v-if="garnishCount">
-								<svg class="wh-rem8 fi-99 va-m"><use xlink:href="#icon_peicai1"></use></svg>
+								<svg class="wh-rem8 fi-99"><use xlink:href="#icon_peicai1"></use></svg>
 								<template v-for="vvv in goodsInfo.garnish_list">
 									<template v-if="vvv.garnish_count > 1">{{vvv.garnish_id | toGarnishName}} x{{vvv.garnish_count}},</template>
 									<template v-else-if="vvv.garnish_count === 1">{{vvv.garnish_id | toGarnishName}},</template>
@@ -34,8 +34,8 @@
 							</p>
 							<p class="fx-hc" @click="gotoDesc()">
 								<b class="tc-mc fs-1rem">{{goodsInfo.total_price}}</b>
-								<span class="fx-g1 ta-r tc-cc">计价方式</span>
-								<svg class="wh-1em fi-cc mg-l-rem2"><use xlink:href="#icon_wenhao1"></use></svg>
+								<span class="fx-g1 ta-r tc-cc">计价方式&nbsp;</span>
+								<svg class="wh-1em fi-cc"><use xlink:href="#icon_wenhao1"></use></svg>
 							</p>
 						</div>
 					</div>
@@ -48,10 +48,11 @@
 						<a @click="changeCount(1)" class="pd-lr-rem5"><svg class="wh-1rem2 fi-mc"><use xlink:href="#icon_jia1"></use></svg></a>
 					</div>
 				</li>
-				<li class="pd-rem5 tp-f0">
+				<li v-if="isAllowPackaging" class="pd-rem5 tp-f0">
 					<div class="fx-hc pd-r-rem5">
 						<b class="fx-g1">打包</b>
-						<mu-switch v-model="isPack"></mu-switch>
+						<span v-if="packChargePrice" class="pd-r-1rem tc-aa">(打包附加费 <i :class="{'tc-mc': isPack}">+{{packChargePrice | roundTwoDecimal}}</i>)</span>
+						<mu-switch v-model="isPack" @change="switcherChange"></mu-switch>
 					</div>
 				</li>
 				<li v-if="goodsInfo.spec_list" class="pd-rem5">
@@ -122,7 +123,7 @@
 	import yhoStore from '@/utils/yhostore'
 	import { mapGetters } from 'vuex'
 	import { getSpecName, getTasteName, getGarnishName } from '@/apis/goods'
-	import { getRemarkInfo } from '@/apis/shop_data'
+	import { getRemarkInfo, getGoodsPackCharge, getShopSetting } from '@/apis/shop_data'
 	import garnishCounts from './garnishcounts'
 	import goodsImage from '@/components/GoodsImage'
 	
@@ -137,7 +138,10 @@
 				garnishIndex: -1,
 				beizhuCount: 0,
 				ulScrollTop: 0,
-				isPack: false //是否打包
+				packChargePrice: 0, //打包附加费金额
+				isSubmiting: false, //避免连续点击导致重复提交数据
+				isPack: false, //是否打包
+				isAllowPackaging: (getShopSetting("is_can_takeway") == 1) //是否允许打包
 			}
 		},
 		filters:{
@@ -149,6 +153,9 @@
 			},
 			toGarnishName(gid){
 				return getGarnishName(gid) || `[A${gid}]`;
+			},
+			roundTwoDecimal(num){//保留两位小数
+				return toFixed2(num);
 			}
 		},
 		computed: {
@@ -156,7 +163,7 @@
 		},
 		components: { garnishCounts, goodsImage },
 		mounted() {
-			//var $mine = this;
+			//nothing to do
 		},
 		deactivated(){//保存上次滚动到的地方
 			this.ulScrollTop = $("#alacarteUlBox").scrollTop() || 0;
@@ -209,6 +216,7 @@
 					}
 					
 					this.garnishLimit = (+newer.garnish_max_count || 0);
+					this.packChargePrice = getGoodsPackCharge(newer.goods_price, newer.pack_charge, newer.pack_charge_type);
 					this.goodsInfo = newer;
 				} else {
 					this.resetData();
@@ -291,6 +299,10 @@
 					this.garnishCount = cc;
 				}
 				
+				if(this.isPack && this.packChargePrice){//加上打包附加费
+					pp = accAdd(pp, this.packChargePrice);
+				}
+				
 				gg.unit_price = pp;//套餐单价，整型，非字符串
 				
 				if(gg.goods_count > 1){
@@ -319,9 +331,13 @@
 				});
 			},
 			addtoCart(){//加入购物车
-				let newGoods = this.formatGoods(this.goodsInfo);
-				this.resetData();
-				this.$emit("confirm", newGoods);
+				if(!this.isSubmiting){
+					this.isSubmiting = true; //避免连续点击导致重复提交数据
+					
+					let newGoods = this.formatGoods(this.goodsInfo);
+					this.$emit("confirm", newGoods);
+					this.resetData();
+				}
 			},
 			resetData(){
 				this.goodsInfo = null;
@@ -331,6 +347,7 @@
 				this.beizhuCount = 0;
 				this.ulScrollTop = 0;
 				this.isPack = false;
+				this.isSubmiting = false;
 				this.$store.commit("resetTextInputerValue");//清空备注输入
 			},
 			garnishConfirm(arg0){
@@ -339,11 +356,10 @@
 				}
 				this.garnishIndex = -1;
 			},
-			formatGoods(ginfos){
-				let keyString = `g${ginfos.id}`;
+			formatGoods(ginfos){//格式化菜品数据，用于提交给后台
+				let keyString = (ginfos.cate_key + ginfos.goods_key);
 				let newGoods = {
 					"cart_id": newCartID(),
-					"cate_id": ginfos.goods_cate_id,
 					"goods_id": ginfos.id,
 					"goods_name": ginfos.goods_name,
 					"goods_thumb": ginfos.goods_thumb,
@@ -404,8 +420,13 @@
 				}
 				
 				newGoods.unique_key = keyString;
-
+				
 				return newGoods;
+			},
+			switcherChange(){
+				if(this.packChargePrice){
+					this.recalcPrice();
+				}
 			}
 		}
 	}

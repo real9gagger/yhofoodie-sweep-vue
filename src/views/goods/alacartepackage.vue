@@ -10,14 +10,14 @@
 				<svg class="wh-1rem fi-66"><use xlink:href="#icon_flowmode"></use></svg>
 			</a>
 		</div>
-		<div class="ps-s bg-ff fx-r pd-rem5">
+		<div class="ps-s po-t-n1 bg-ff fx-r pd-rem5">
 			<goods-image :pic-src="packageInfo.goods_thumb" box-size="small"></goods-image>
 			<div class="fx-g1 pd-l-rem5">
 				<p class="fw-b fs-1rem">{{packageInfo.goods_name}}</p>
 				<p class="fx-hc" @click="gotoDesc()">
 					<b class="tc-mc fs-1rem">{{packageInfo.total_price}}</b>
-					<span class="fx-g1 ta-r tc-cc">计价方式</span>
-					<svg class="wh-1em fi-cc mg-l-rem2"><use xlink:href="#icon_wenhao1"></use></svg>
+					<span class="fx-g1 ta-r tc-cc">计价方式&nbsp;</span>
+					<svg class="wh-1em fi-cc"><use xlink:href="#icon_wenhao1"></use></svg>
 				</p>
 			</div>
 		</div>
@@ -27,9 +27,10 @@
 			<span class="ta-c wi-1rem5">{{packageInfo.package_count}}</span>
 			<a @click="changeCount(1)" class="pd-lr-rem5"><svg class="wh-1rem2 fi-mc"><use xlink:href="#icon_jia2"></use></svg></a>
 		</div>
-		<div class="fx-hc pd-tb-rem5 pd-l-rem5 pd-r-1rem tp-f0">
+		<div v-if="isAllowPackaging" class="fx-hc pd-tb-rem5 pd-l-rem5 pd-r-1rem tp-f0">
 			<b class="fx-g1">打包</b>
-			<mu-switch v-model="isPack"></mu-switch>
+			<span v-if="packChargePrice" class="pd-r-1rem tc-aa">(打包附加费 <i :class="{'tc-mc': isPack}">+{{packChargePrice | roundTwoDecimal}}</i>)</span>
+			<mu-switch v-model="isPack" @change="switcherChange"></mu-switch>
 		</div>
 		<template v-if="viewMode === 1">
 			<div v-for="vxo,ixo in packageInfo.package_cate_list" :key="vxo.id" class="pd-tb-rem5 pd-l-rem5">
@@ -93,7 +94,7 @@
 			</p>
 		</div>
 		<div class="ps-s po-b-0 ta-c bg-ff pd-tb-rem5">
-			<div class="wi-col-10 btnbox bg-mcff">加入购物车</div>
+			<div class="wi-col-10 btnbox bg-mcff" @click="addtoCart">加入购物车</div>
 		</div>
 		<package-goods ref="packageGoodsBox" @confirm="goodsConfirm"></package-goods>
 	</div>
@@ -103,6 +104,7 @@
 	import yhoStore from '@/utils/yhostore'
 	import { mapGetters } from 'vuex'
 	import { getGoodsObject } from '@/apis/goods'
+	import { getGoodsPackCharge, getShopSetting } from '@/apis/shop_data'
 	import goodsImage from '@/components/GoodsImage'
 	import backButton from '@/components/BackButton'
 	import packageGoods from './alacartepackagegoods'
@@ -114,9 +116,12 @@
 			return {
 				packageInfo: null,
 				isPack: false,
+				packChargePrice: 0, //打包附加费金额
 				goodsBoxWidth: "",
-				goodsBoxCols: 0, //大图模式时，一行有多少列
+				goodsBoxCols: 1, //大图模式时，一行有多少列
 				viewMode: 0, //0-没有菜品，1-列表模式，2-大图模式
+				isSubmiting: false,//是否正在提交，避免连续点击导致重复提交数据
+				isAllowPackaging: (getShopSetting("is_can_takeway") == 1) //是否允许打包
 			}
 		},
 		computed: {
@@ -126,14 +131,20 @@
 			this.getBoxWidth(1);
 			this.initData(yhoStore.onceObject("selected_goods_infos"));
 		},
+		filters: {
+			roundTwoDecimal(num){//保留两位小数
+				return toFixed2(num);
+			}
+		},
 		components: {goodsImage,backButton,packageGoods},
 		methods:{
 			initData(pinfos){//初始化套餐数据...
 				if(pinfos){
+					let fgCount = 0;
+					
 					if(this.$isEmpty(pinfos.package_cate_list)){
 						this.viewMode = 0;
 					} else {
-						let fgCount = 0;
 						$.each(pinfos.package_cate_list, function(idx, item){
 							let isFG = false;
 							if(item.is_fix_goods == 1){
@@ -162,7 +173,10 @@
 					
 					pinfos.total_price = pinfos.goods_price;
 					pinfos.package_count = 1;
+					this.packChargePrice = getGoodsPackCharge(pinfos.goods_price, pinfos.pack_charge, pinfos.pack_charge_type);
 					this.packageInfo = pinfos;
+					this.isPack = false;
+					this.isSubmiting = false;
 					
 					if(fgCount){//如果有固定菜品，则重新计算总价
 						this.recalcPrice();
@@ -192,6 +206,10 @@
 						}
 					}
 				});
+				
+				if(this.isPack && this.packChargePrice){//加上打包附加费
+					totalPrice = accAdd(totalPrice, this.packChargePrice);
+				}
 				
 				this.packageInfo.unit_price = totalPrice; //套餐单价，整型，非字符串
 				
@@ -279,11 +297,10 @@
 			isInCols(idx0, idx1){//是否在这一列中
 				return ((idx1 % this.goodsBoxCols + 1) === idx0);
 			},
-			formatPackage(pinfos){//格式化套餐数据
-				let keyString = `p${pinfos.id}`;
+			formatPackage(pinfos){//格式化套餐数据，用于提交给后台
+				let keyString = (pinfos.cate_key + pinfos.goods_key);
 				let newPackage = {
 					"cart_id": newCartID(),
-					"cate_id": pinfos.goods_cate_id,
 					"goods_id": pinfos.id,
 					"goods_name": pinfos.goods_name,
 					"goods_thumb": pinfos.goods_thumb,
@@ -305,19 +322,66 @@
 				$.each(this.packageInfo.package_cate_list, function(idx, pcobj){
 					for(let gobj of pcobj.goods_list){
 						if(gobj.selected_count){
+							let sid = 0;
+							let tid = 0;
+							let gids = {};
+							
+							if(gobj.spec_index >= 0){
+								sid = gobj.spec_list[gobj.spec_index].spec_id;
+							}
+							if(gobj.taste_index >= 0){
+								tid = gobj.taste_list[gobj.taste_index].taste_id;
+							}
+							if(gobj.garnish_sel_count > 0){
+								for(let temp of gobj.garnish_list){
+									if(temp.garnish_count){
+										gids[temp.garnish_id] = temp.garnish_count;
+									}
+								}
+							}
+							
 							packageGoodsList.push({
-								"goods_id": 0,
-								"goods_name": 0,
-								"goods_count": 0,
-								"total_price": 0,
-								"spec_id": 0, //规格
-								"taste_id": 0, //口味
-								"garnish_ids": {}, //配菜
+								"cate_id":		pcobj.id,
+								"item_id":		gobj.id,
+								"goods_id": 	gobj.goods_id,
+								"goods_name": 	gobj.goods_name,
+								"goods_count": 	gobj.selected_count,
+								"total_price": 	gobj.total_price,
+								"spec_id": 		sid, //规格
+								"taste_id": 	tid, //口味
+								"garnish_ids": 	gids, //配菜
 							});
 						}
 					}
 					packageCatesList.push({"id": pcobj.id, "name": pcobj.cate_name});
 				});
+				
+				keyString += `ct${newPackage.cart_id}`; //让key保持唯一性
+				
+				if(this.textInputerValue){//用户自定义备注
+					newPackage.goods_remarks["B0000"] = this.textInputerValue; //键名英文字母开头，以便让自定义备注排在最后
+				}
+				
+				newPackage.unique_key = keyString;
+				newPackage.package_cate_list = packageCatesList;
+				newPackage.package_goods_list = packageGoodsList;
+				
+				return newPackage;
+			},
+			addtoCart(){//加入购物车
+				if(!this.isSubmiting){//避免连续点击导致重复提交数据
+					this.isSubmiting = true;
+					
+					let newPackage = this.formatPackage(this.packageInfo);
+					this.$store.commit("addGoodsToCart", newPackage);
+					this.$store.commit("recalcTotalPrice"); //重新计算总价
+					this.$router.back();
+				}
+			},
+			switcherChange(){
+				if(this.packChargePrice){
+					this.recalcPrice();
+				}
 			}
 		}
 	}

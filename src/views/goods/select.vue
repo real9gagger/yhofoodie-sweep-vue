@@ -14,7 +14,7 @@
 				<ul class="select-left-menu">
 					<li v-for="item,index in shopGoods" :class="{activing: index === cateIndex}" :key="item.cate_key" @click="onCateClicked(index)">
 						<i class="vertical-bar"></i>
-						<svg v-if="item.id==0"><use xlink:href="#icon_taocan"></use></svg>
+						<svg v-if="item.id==0"><use xlink:href="#icon_taocan1"></use></svg>
 						<svg v-else-if="item.id==1"><use xlink:href="#icon_tuijian"></use></svg>
 						<svg v-else-if="item.id==2"><use xlink:href="#icon_rexiao"></use></svg>
 						<span>{{item.goods_cate_name}}</span>
@@ -244,7 +244,7 @@
 							this.$refs.chooseGBox.addGoods(this.$refs.alacarteGBox.formatGoods(ginfos));
 							throwGoodsToGwc(arg0.clickedElem, "#myChooseCartBox");
 						} else {
-							this.$refs.chooseGBox.reduceGoods(ginfos.id);
+							this.$refs.chooseGBox.reduceGoods(ginfos.cate_key + ginfos.goods_key);
 						}
 						this.alacarteBtn = null;
 					} else {//显示点菜框【显示多规格/口味/配菜弹窗】
@@ -257,9 +257,9 @@
 								this.$refs.alacarteGBox.showMe(ginfos);
 							}
 						} else if (arg0.newCount <= 0){//只有一份，直接删除
-							this.$refs.chooseGBox.reduceGoods(ginfos.id);
+							this.$refs.chooseGBox.reduceGoods(ginfos.cate_key + ginfos.goods_key);
 						} else {
-							this.$refs.chooseGBox.showList();
+							this.$refs.chooseGBox.showList(this.cartTotalInfo.total_count);
 						}
 					}
 				} else {//关闭弹窗后，确定加入购物车
@@ -305,7 +305,7 @@
 				$mine.isSearchingCate = false;
 			},
 			showChooseList(){
-				this.$refs.chooseGBox.showList();
+				this.$refs.chooseGBox.showList(this.cartTotalInfo.total_count);
 			},
 			binarySearchIndex(start, end, threshold){ //折半查找。
 				//原理：倒序查找到第一个 offsetTop 小于 scrollTop 的元素所在索引。

@@ -1,4 +1,5 @@
 import axios from 'axios'
+import yhoStore from '@/utils/yhostore'
 
 let shopInitDatas = null;
 let shopRemarkObjs = null;
@@ -21,8 +22,12 @@ function initKeyMaps(code){
 	}
 }
 
+//>>================================ 初始化店铺配置数据 ================================
+getShopDatas();
+//<<================================ 初始化店铺配置数据 ================================
+
 export function getShopDatas(){
-	if (shopInitDatas){
+	if (shopInitDatas || (shopInitDatas = yhoStore.onceObject("shop_datas_cache"))){
 		return new Promise((resolve, reject) => {
 			resolve(shopInitDatas);
 		});
@@ -35,8 +40,11 @@ export function getShopDatas(){
 			if(response && response.data){
 				shopInitDatas = (response.data);
 			} else {
-				shopInitDatas = {};
+				shopInitDatas = {
+					"shop_info":{}
+				};
 			}
+			yhoStore.onceObject("shop_datas_cache", shopInitDatas);//保存到缓存（会话级别）里，防止刷新丢失数据
 			return shopInitDatas;
 		});
 	}
@@ -75,4 +83,32 @@ export function getCookboookName(cid, separator){
 		}
 	}
 	return "";
+}
+
+//获取菜品打包附加费
+export function getGoodsPackCharge(goodsPrice, pcPrice, pcType){
+	if(shopInitDatas.shop_info.is_can_takeway != 1){ //店铺不允许打包
+		return 0;
+	}
+	
+	if(pcType == 2){//优先取菜品设置的打包附加费====指定金额
+		return (pcPrice * 1.0);//转成数字类型
+	} else if(pcType == 1){//优先取菜品设置的打包附加费====指定巴仙
+		return (pcPrice / 100 * goodsPrice);
+	}
+	
+	let shopPcType = shopInitDatas.shop_info.pack_charge_type;
+	if(shopPcType == 0){
+		return 0;
+	}else if(shopPcType == 2){//店铺设置的打包附加费====指定金额
+		return (shopInitDatas.shop_info.pack_charge * 1.0);//转成数字类型
+	} else if(shopPcType == 1){//店铺设置的打包附加费====指定巴仙
+		return (shopInitDatas.shop_info.pack_charge / 100 * goodsPrice);
+	}
+	return 0;
+}
+
+//获取店铺设置
+export function getShopSetting(keyName){
+	return shopInitDatas.shop_info[keyName];
 }

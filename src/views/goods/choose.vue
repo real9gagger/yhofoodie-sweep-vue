@@ -1,11 +1,11 @@
 <template>
 	<transition name="choose-slideup">
-		<div v-if="isShowPanel" class="choose-goods-container fx-c">
+		<div v-if="isShowBox" class="choose-goods-container fx-c">
 			<h4 class="fx-g1" @click="showList()"><!--占位专用--></h4>
 			<ul>
 				<li class="ps-s bg-ff">
 					<div class="fx-r hi-f fx-mc pd-lr-rem5 pd-t-rem5">
-						<b class="pd-tb-rem5 pd-l-rem5">已点菜品 {{cartTotalInfo.total_count}}</b>
+						<b class="pd-tb-rem5 pd-l-rem5">已点菜品 {{goodsTotalCount}}</b>
 						<a class="pd-rem5" @click="changeCount(0, 2)"><svg class="choose-header-icon"><use xlink:href="#icon_clearall"></use></svg></a>
 						<b class="pd-l-rem5">用餐人数 {{numberofDining}}</b>
 						<a class="pd-rem5"><svg class="choose-header-icon"><use xlink:href="#icon_edit1"></use></svg></a>
@@ -20,15 +20,28 @@
 							<p class="tc-99">
 								<span v-if="item.spec_id" class="pd-r-rem5">{{item.spec_id | toSpecName}}</span>
 								<span v-if="item.taste_id" class="pd-r-rem5">{{item.taste_id | toTasteName}}</span>
+								<template v-if="item.is_package_goods">
+									<svg class="wh-1rem fi-mc va-t"><use xlink:href="#icon_taocan2"></use></svg>
+									<span class="tc-mc pd-l-rem1 pd-r-rem5">套餐</span>
+								</template>
 								<template v-if="item.is_pack">
 									<svg class="wh-1rem fi-mc va-t"><use xlink:href="#icon_dabao1"></use></svg>
 									<span class="tc-mc pd-l-rem1">打包</span>
 								</template>
 							</p>
 							<p class="tc-99" v-if="!$isEmpty(item.garnish_ids)">
-								<svg class="wh-1rem fi-99 va-m"><use xlink:href="#icon_peicai1"></use></svg>
+								<svg class="wh-1rem fi-99"><use xlink:href="#icon_peicai1"></use></svg>
 								<span>{{item.garnish_ids | toGarnishName}}</span>
 							</p>
+							<template v-if="!$isEmpty(item.package_goods_list)">
+								<p v-for="gobj in item.package_goods_list" :key="gobj.item_id">
+									<svg class="wh-1rem fi-99"><use xlink:href="#icon_meishi"></use></svg>
+									<span class="tc-99 pd-l-rem1">{{gobj.goods_name}}</span>
+									<template v-if="gobj.goods_count > 1">
+										<span class="fs-rem6 tc-mc">&emsp;x</span><b class="tc-mc">{{gobj.goods_count}}</b>
+									</template>
+								</p>
+							</template>
 							<p class="tc-99" v-if="!$isEmpty(item.goods_remarks)">
 								<svg class="wh-1rem fi-99 va-t"><use xlink:href="#icon_beizhu1"></use></svg>
 								<span>{{item.goods_remarks | toGoodsRemark}}</span>
@@ -42,7 +55,7 @@
 					</div>
 				</li>
 				<li class="ps-s po-b-0 bg-ff">
-					<div class="pd-rem5 ta-c">本店铺暂不支持打包</div>
+					<div v-if="!isAllowPackaging" class="pd-rem5 ta-c">本店铺暂不支持打包</div>
 				</li>
 			</ul>
 		</div>
@@ -52,6 +65,7 @@
 <script>
 	import { mapGetters } from 'vuex'
 	import { getSpecName, getTasteName, getGarnishName } from '@/apis/goods'
+	import { getShopSetting } from '@/apis/shop_data'
 	import counterGoods from './counter'
 	import goodsImage from '@/components/GoodsImage'
 	
@@ -61,7 +75,9 @@
 			return {
 				cartAddingTimerID: 0,
 				numberofDining: 1, //用餐人数
-				isShowBox: false //是否显示已点
+				goodsTotalCount: 0, //已点菜品数量
+				isShowBox: false, //是否显示已点
+				isAllowPackaging: (getShopSetting("is_can_takeway") == 1) //是否允许打包
 			}
 		},
 		filters:{
@@ -100,27 +116,23 @@
 			}
 		},
 		computed: {
-			isShowPanel(){
-				return (this.isShowBox && this.cartGoodsList.length > 0);
-			},
-			...mapGetters(["cartGoodsList", "cartTotalInfo"])
+			...mapGetters(["cartGoodsList"])
 		},
 		components:{ counterGoods, goodsImage },
 		methods:{
-			showList(){
-				this.isShowBox = !this.isShowBox;
+			showList(nums){
+				if(nums){
+					this.goodsTotalCount = nums;
+					this.isShowBox = !this.isShowBox;
+				} else {
+					this.goodsTotalCount = 0;
+					this.isShowBox = false;
+				}
 			},
 			checkGoods(ukey){//判断菜品是否已被添加过了
 				for(let nth in this.cartGoodsList){
-					if(this.cartGoodsList[nth].unique_key === ukey){
-						return nth;
-					}
-				}
-				return -1;
-			},
-			findGoods(gid){
-				for(let nth in this.cartGoodsList){
-					if(this.cartGoodsList[nth].goods_id === gid){
+					let keyStr = this.cartGoodsList[nth].unique_key;
+					if(keyStr.length === ukey.length && keyStr === ukey){ //先判断长度再判断内容
 						return nth;
 					}
 				}
@@ -129,6 +141,7 @@
 			changeCount(nth, isAdds){
 				if(isAdds === 2){//清空
 					this.$store.commit("clearGoodsFromCart");//清空购物车
+					this.isShowBox = false;
 				} else {
 					let temp = this.cartGoodsList[nth];
 					if(isAdds === 1 || isAdds === 3){
@@ -140,6 +153,9 @@
 							temp.total_price = toFixed2(accMul(temp.unit_price, temp.goods_count));
 						} else {
 							this.$store.commit("removeGoodsFromCart", nth);//删除某个菜品
+							if(this.cartGoodsList.length === 0){
+								this.isShowBox = false;
+							}
 						}
 					}
 				}
@@ -166,8 +182,8 @@
 					$mine.$store.commit("recalcTotalPrice"); //重新计算
 				}, 500);
 			},
-			reduceGoods(gid){//减少菜品数量
-				let existsIndex = this.findGoods(gid);
+			reduceGoods(ukey){//减少菜品数量
+				let existsIndex = this.checkGoods(ukey);
 				this.changeCount(existsIndex, 0);
 			}
 		}

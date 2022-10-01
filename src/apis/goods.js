@@ -1,4 +1,5 @@
 import constVars from './const'
+import yhoStore from '@/utils/yhostore'
 import axios from 'axios'
 
 let shopGoodsData = null;
@@ -162,8 +163,12 @@ function formatHHmm2(ts1, ts2){
 	);
 }
 
+//>>================================ 初始化店铺菜品数据 ================================
+getShopGoods();
+//<<================================ 初始化店铺菜品数据 ================================
+
 export function getShopGoods(){
-	if (shopGoodsData){
+	if (shopGoodsData || (shopGoodsData = yhoStore.onceObject("shop_goods_cache"))){
 		return new Promise((resolve, reject) => {
 			resolve(shopGoodsData);
 		});
@@ -184,6 +189,7 @@ export function getShopGoods(){
 					"taste_list": []
 				};
 			}
+			yhoStore.onceObject("shop_goods_cache", shopGoodsData);//保存到缓存（会话级别）里，防止刷新丢失数据
 			return shopGoodsData;
 		});
 	}

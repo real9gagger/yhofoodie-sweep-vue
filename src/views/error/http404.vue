@@ -9,7 +9,7 @@
 			<p style="margin-top:10px;">YOU&nbsp;LOOK&nbsp;LOST</p>
 		</div>
         <div class="error404-body-con-btns">
-          <a @click="goHome" class="tc-mc">返回首页</a>
+          <a @click="goHome" class="tc-mc">返回主页</a>
           <a @click="backPage" class="tc-mc" style="margin-left: 40px;">返回上一页</a>
         </div>
     </div>
@@ -35,7 +35,7 @@ export default {
       this.$router.go(-1);
     },
     goHome() {
-      this.$router.push("/");
+      this.$router.push("/home");
     }
   }
 };

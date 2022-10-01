@@ -5,7 +5,7 @@
 		@enter="onPageEnter" 
 		@after-enter="onPageAfterEnter" 
 		@leave="onPageLeave" :css="false">
-		<keep-alive>
+		<keep-alive :exclude="keepAliveExclude" :max="20">
 			<router-view v-if="$route.meta.keepAlive"></router-view>
 		</keep-alive>
 	</transition>
@@ -21,13 +21,14 @@
 
 <script>
 //import Velocity from 'velocity-animate'
+import { mapGetters } from 'vuex'
 export default {
   name: 'App',
   data(){
-	return {
-		isGoBack1: null, //null-首次加载，true-点了返回按钮，false-进入新页面
-		isGoBack2: false //true-点了返回按钮，false-离开当前页面
-	}
+	return {}
+  },
+  computed: {
+  	...mapGetters(["isRouterBack", "keepAliveExclude"])
   },
   mounted() {
 	if(!window.onresize){
@@ -47,20 +48,13 @@ export default {
 			document.body.style.height = (window.innerHeight + "px");
 		}
 	}
-	if(!window.onpopstate){
-		window.onpopstate = this.onWinPopState;
-	}
 	window.onresize();
 	//this.$yhoAjax("member_app_login", {username: "18249941545", password: "a12345678", uuid: "866982030752119", gpush_token: "1"})
   },
   methods:{
-	onWinPopState(){
-		this.isGoBack1 = true;
-		this.isGoBack2 = true;
-	},
 	onPageBeforeEnter(elem){//进入页面时要固定定位
 		//等于null表示首次加载，此时不需要页面切换动画
-		let transX = (this.isGoBack1 ? -100 : (this.isGoBack1===false ? 100 : 0));
+		let transX = (this.isRouterBack ? -100 : (this.isRouterBack===false ? 100 : 0));
 		$(elem).css({
 			position: "fixed",
 			top: "0px",
@@ -71,7 +65,6 @@ export default {
 			transform: `translate(${transX}%,0)`, //如果是返回则，往右移动，打开新页面时才往左移动
 			transition: "transform 0.4s"
 		});
-		this.isGoBack1 = false;
 	},
 	onPageEnter(elem, done){//页面进入
 		/* Velocity(elem, { transform: "translateX(0)" }, { duration: 3000, complete: done }); */
@@ -96,9 +89,7 @@ export default {
 		
 		setTimeout(function(transX){
 			elem.style.transform = `translate(${transX}%, 0)`;
-		}, 10, (this.isGoBack2 ? 100 : -100));//如果是返回则，往右移动，打开新页面时才往左移动
-		
-		this.isGoBack2 = false;
+		}, 10, (this.isRouterBack ? 100 : -100));//如果是返回则，往右移动，打开新页面时才往左移动
 	}
   }
 }

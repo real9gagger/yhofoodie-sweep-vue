@@ -49,7 +49,7 @@ yhoStore.prototype.clear = function(){
 }
 
 yhoStore.prototype.onceObject = function(name, obj){
-	if((typeof obj) === "undefined"){
+	if(obj === undefined){
 		let jsonStr = sessionStorage.getItem(this.NAME_PREFIX + name);
 		if(jsonStr){
 			return JSON.parse(jsonStr);

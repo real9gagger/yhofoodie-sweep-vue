@@ -1,8 +1,10 @@
 <template>
 	<div class="fx-hc">
 		<b class="tc-mc fx-g1 pd-t-rem5" :class="titleClass">{{counterTitle}}</b>
-		<a v-if="goodsCount > 0" class="pd-t-rem5" @click="addCount(-1, $event)"><svg class="counter-choose-svg" :class="btnSize"><use xlink:href="#icon_jian1"></use></svg></a>
-		<i v-if="goodsCount > 0" class="ta-c pd-t-rem5" :class="countClass">{{goodsCount}}</i>
+		<template v-if="goodsCount > 0">
+			<a class="pd-t-rem5" @click="addCount(-1, $event)"><svg class="counter-choose-svg" :class="btnSize"><use xlink:href="#icon_jian1"></use></svg></a>
+			<i class="ta-c pd-t-rem5" :class="countClass">{{goodsCount}}</i>
+		</template>
 		<a class="pd-t-rem5" @click="addCount(1, $event)">
 			<svg v-if="hollowPlus" class="counter-choose-svg" :class="btnSize"><use xlink:href="#icon_jia1"></use></svg>
 			<svg v-else-if="goodsCount > 0 || !multipleChoice" class="counter-choose-svg" :class="btnSize"><use xlink:href="#icon_jia2"></use></svg>

@@ -20,7 +20,7 @@
 						<span class="pd-r-rem5">推荐</span>
 					</template>
 					<template v-if="goodsInfo.is_package_goods">
-						<svg class="details-svg-icon2"><use xlink:href="#icon_taocan"></use></svg>
+						<svg class="details-svg-icon2"><use xlink:href="#icon_taocan1"></use></svg>
 						<span class="pd-r-rem5">套餐</span>
 					</template>
 					<template v-if="goodsInfo.sales != 0">
