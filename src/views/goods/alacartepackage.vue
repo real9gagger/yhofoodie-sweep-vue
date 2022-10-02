@@ -2,7 +2,7 @@
 	<div v-if="packageInfo">
 		<div class="fx-hc hi-3rem bg-f6 pd-lr-rem5">
 			<back-button class="fx-g1 tc-66"></back-button>
-			<span class="fx-g6 ta-c">{{packageInfo.goods_name}}</span>
+			<span class="fx-g6 ta-c">套餐选菜</span>
 			<a v-if="viewMode === 2" class="fx-g1 ta-r" @click="getBoxWidth(1)">
 				<svg class="wh-1rem fi-66"><use xlink:href="#icon_listmode"></use></svg>
 			</a>
@@ -14,6 +14,10 @@
 			<goods-image :pic-src="packageInfo.goods_thumb" box-size="small"></goods-image>
 			<div class="fx-g1 pd-l-rem5">
 				<p class="fw-b fs-1rem">{{packageInfo.goods_name}}</p>
+				<p>
+					<svg class="wh-rem8 fi-99 va-tt"><use xlink:href="#icon_taocan2"></use></svg>
+					<span class="tc-99 pd-l-rem1">套餐</span>
+				</p>
 				<p class="fx-hc" @click="gotoDesc()">
 					<b class="tc-mc fs-1rem">{{packageInfo.total_price}}</b>
 					<span class="fx-g1 ta-r tc-cc">计价方式&nbsp;</span>
@@ -53,6 +57,7 @@
 								</p>
 							</div>
 							<div v-if="subitem.is_deleted" class="package-goods-deleted">已失效</div>
+							<div v-else-if="subitem.is_soldout" class="package-goods-deleted">已售罄</div>
 							<div v-else-if="subitem.is_multiple_choice" class="package-goods-limit">多规格</div>
 						</div>
 					</li>
@@ -77,6 +82,7 @@
 									</p>
 								</div>
 								<div v-if="subitem.is_deleted" class="package-goods-deleted">已失效</div>
+								<div v-else-if="subitem.is_soldout" class="package-goods-deleted">已售罄</div>
 								<div v-else-if="subitem.is_multiple_choice" class="package-goods-limit">多规格</div>
 							</div>
 						</template>
@@ -119,6 +125,7 @@
 				packChargePrice: 0, //打包附加费金额
 				goodsBoxWidth: "",
 				goodsBoxCols: 1, //大图模式时，一行有多少列
+				appScrollTop: 0,
 				viewMode: 0, //0-没有菜品，1-列表模式，2-大图模式
 				isSubmiting: false,//是否正在提交，避免连续点击导致重复提交数据
 				isAllowPackaging: (getShopSetting("is_can_takeway") == 1) //是否允许打包
@@ -130,6 +137,15 @@
 		mounted() {
 			this.getBoxWidth(1);
 			this.initData(yhoStore.onceObject("selected_goods_infos"));
+		},
+		deactivated(){//保存上次滚动到的地方
+			this.appScrollTop = $("#yhoapp").scrollTop() || 0;
+		},
+		activated(){
+			if(this.appScrollTop){
+				//返回上次滚动到的地方，等页面切换动画执行完后再滚动
+				setTimeout(function(sTop){ $("#yhoapp").scrollTop(sTop) }, 450, this.appScrollTop);
+			}
 		},
 		filters: {
 			roundTwoDecimal(num){//保留两位小数
@@ -235,6 +251,8 @@
 				
 				if(ginfos.is_deleted){//菜品已失效
 					return !yhoToast("菜品已失效，请选择其他菜品");
+				} else if(ginfos.is_soldout){
+					return !yhoToast("菜品已售罄，请选择其他菜品");
 				}
 				
 				if(maxcount <= 1){//多选一
@@ -375,6 +393,7 @@
 					let newPackage = this.formatPackage(this.packageInfo);
 					this.$store.commit("addGoodsToCart", newPackage);
 					this.$store.commit("recalcTotalPrice"); //重新计算总价
+					yhoToast("已加入购物车");
 					this.$router.back();
 				}
 			},
@@ -404,7 +423,7 @@
 		color: #fff;
 		background-color: $appMainColor;
 		border-bottom-right-radius: 0.3rem;
-		padding: 0 0.3rem;
+		padding: 0 0.4rem;
 	}
 	.package-mul-sign{
 		&:before{
@@ -422,7 +441,7 @@
 		color: #666;
 		background-color: #ccc;
 		border-bottom-right-radius: 0.3rem;
-		padding: 0 0.3rem;
+		padding: 0 0.4rem;
 	}
 	.package-goods-item{
 		display: inline-block;

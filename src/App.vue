@@ -104,7 +104,9 @@ export default {
   color: #000;
   background-color: #fff;
   height: 100%;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   user-select: none;
+  scroll-behavior:smooth;
 }
 </style>

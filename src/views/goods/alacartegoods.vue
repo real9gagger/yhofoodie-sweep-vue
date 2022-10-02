@@ -59,11 +59,12 @@
 					<p class="fw-b">规格</p>
 					<p>
 						<a v-for="vxo,ixo in goodsInfo.spec_list" class="alacarte-goods-subitem" 
-							@click="selectGkp(ixo, 1)"
+							@click="selectGkp(vxo, ixo, 1)"
 							:key="vxo.spec_id"
 							:class="{checked: ixo === goodsInfo.spec_index}">
 							<span>{{vxo.spec_id | toSpecName}}</span>
-							<span class="tc-mc dp-bk">{{vxo.goods_price}}</span>
+							<span v-if="vxo.is_soldout" class="dp-bk tc-99">已售罄</span>
+							<span v-else class="tc-mc dp-bk">{{vxo.goods_price}}</span>
 						</a>
 					</p>
 				</li>
@@ -71,11 +72,12 @@
 					<p class="fw-b">口味</p>
 					<p>
 						<a v-for="vxo,ixo in goodsInfo.taste_list" class="alacarte-goods-subitem" 
-							@click="selectGkp(ixo, 2)"
+							@click="selectGkp(vxo, ixo, 2)"
 							:key="vxo.taste_id"
-							:class="{bigger: vxo.goods_price == 0, checked: ixo === goodsInfo.taste_index}">
+							:class="{bigger: !vxo.is_soldout && vxo.goods_price == 0 , checked: ixo === goodsInfo.taste_index}">
 							<span>{{vxo.taste_id | toTasteName}}</span>
-							<span class="tc-mc dp-bk">+{{vxo.goods_price}}</span>
+							<span v-if="vxo.is_soldout" class="dp-bk tc-99">已售罄</span>
+							<span v-else-if="vxo.goods_price != 0" class="tc-mc dp-bk">+{{vxo.goods_price}}</span>
 						</a>
 					</p>
 				</li>
@@ -83,11 +85,12 @@
 					<p class="fw-b">配菜<span class="pd-l-rem5 tc-99" v-if="garnishLimit">(最多 {{garnishLimit}} 份)</span></p>
 					<p>
 						<a v-for="vxo,ixo in goodsInfo.garnish_list" class="alacarte-goods-subitem"
-							@click="selectGkp(ixo, 3)"
+							@click="selectGkp(vxo, ixo, 3)"
 							:key="vxo.garnish_id"
 							:class="{checked: !!vxo.garnish_count, editing: ixo === garnishIndex}">
 							<span>{{vxo.garnish_id | toGarnishName}}</span>
-							<span class="dp-bk">
+							<span v-if="vxo.is_soldout" class="dp-bk tc-99">已售罄</span>
+							<span v-else class="dp-bk">
 								<span class="tc-mc">+{{vxo.goods_price}}</span>
 								<b v-if="vxo.garnish_count > 1" class="alacarte-mul-sign">{{vxo.garnish_count}}</b>
 								<span v-else-if="vxo.maxcount==1" class="pd-l-rem25 tc-mc">(限1份)</span>
@@ -231,24 +234,27 @@
 				}
 				this.recalcPrice();
 			},
-			selectGkp(arg0, arg1){//选择规格、口味、配菜
+			selectGkp(argx, arg0, arg1){//选择规格、口味、配菜
+				if(argx.is_soldout){
+					return !yhoToast("已售罄，请选择其他项");
+				}
+				
 				if(arg1 === 1){//规格
 					this.goodsInfo.spec_index = arg0;
 				} else if(arg1 === 2){//口味
 					this.goodsInfo.taste_index = arg0;
 				} else if(arg1 === 3){//配菜
-					let temp = this.goodsInfo.garnish_list[arg0];
-					if(!temp.garnish_count){//没有数量
+					if(!argx.garnish_count){//没有数量
 						if(this.garnishLimit && this.garnishCount >= this.garnishLimit){
 							return !yhoToast(`最多 ${this.garnishLimit} 份`);
 						} else {
-							this.$set(temp, "garnish_count", 1);
+							this.$set(argx, "garnish_count", 1);
 						}
-					} else if(temp.maxcount == 1){//最大可选数量为1，不用弹出对话框
-						temp.garnish_count = 0;
+					} else if(argx.maxcount == 1){//最大可选数量为1，不用弹出对话框
+						argx.garnish_count = 0;
 					} else {//弹出对话框
 						this.garnishIndex = arg0;
-						return !this.$refs.garnishCountsBox.showMe(temp, window.event.currentTarget, this.garnishLimit, this.garnishCount);
+						return !this.$refs.garnishCountsBox.showMe(argx, window.event.currentTarget, this.garnishLimit, this.garnishCount);
 					}
 				}
 				this.recalcPrice();
@@ -473,9 +479,6 @@
 		min-width: 5rem;
 		&.bigger{
 			padding: 0.8rem 1rem;
-			>.dp-bk{
-				display: none !important;
-			}
 		}
 		&.checked{
 			border-color: $appMainColor;

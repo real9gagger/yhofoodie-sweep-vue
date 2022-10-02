@@ -152,7 +152,7 @@ yhoRouter.beforeEach((to, from, next) => {
 	} else if(isRefresh(to.path)){//刷新
 		to.meta.keepAlive = true;
 	} else if(isReplace(to.fullPath, to.path)){//替换
-		to.meta.keepAlive = true;
+		to.meta.keepAlive = !(from.meta.keepAlive = false);
 	} else if(isGoback(to.path, from.path)){//返回
 		from.meta.keepAlive = false;
 	} else  {//前进
