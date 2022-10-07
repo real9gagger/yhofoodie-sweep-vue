@@ -1,11 +1,11 @@
 <template>
 	<div class="fx-hc">
-		<b class="tc-mc fx-g1 pd-t-rem5" :class="titleClass">{{counterTitle}}</b>
+		<b class="tc-mc fx-g1" :class="titleClass">{{counterTitle}}</b>
 		<template v-if="goodsCount > 0">
-			<a class="pd-t-rem5" @click="addCount(-1, $event)"><svg class="counter-choose-svg" :class="btnSize"><use xlink:href="#icon_jian1"></use></svg></a>
-			<i class="ta-c pd-t-rem5" :class="countClass">{{goodsCount}}</i>
+			<a class="counter-choose-btn" @click="addCount(-1, $event)"><svg class="counter-choose-svg" :class="btnSize"><use xlink:href="#icon_jian1"></use></svg></a>
+			<i class="ta-c" :class="countClass">{{goodsCount}}</i>
 		</template>
-		<a class="pd-t-rem5" @click="addCount(1, $event)">
+		<a class="counter-choose-btn" @click="addCount(1, $event)">
 			<svg v-if="hollowPlus" class="counter-choose-svg" :class="btnSize"><use xlink:href="#icon_jia1"></use></svg>
 			<svg v-else-if="goodsCount > 0 || !multipleChoice" class="counter-choose-svg" :class="btnSize"><use xlink:href="#icon_jia2"></use></svg>
 			<span v-else class="counter-choose-tip">选</span>
@@ -78,6 +78,19 @@
 </script>
 
 <style scoped="scoped" lang="scss">
+	.counter-choose-btn{
+		position: relative;
+		&:before{
+			content: "";
+			display: block;
+			position: absolute;
+			top:-0.4rem;
+			right:-0.4rem;
+			bottom: -0.4rem;
+			left: -0.4rem;
+			z-index: 1;
+		}
+	}
 	.counter-choose-tip{
 		background-color: $appMainColor;
 		color: #fff;
@@ -90,7 +103,6 @@
 	}
 	.counter-choose-svg{
 		fill: $appMainColor;
-		overflow: hidden;
 		&.small{
 			height: 1.2rem;
 			width: 1.2rem;

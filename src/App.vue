@@ -62,6 +62,7 @@ export default {
 			right: "0px",
 			bottom: "0px",
 			zIndex: "99",
+			backgroundColor: "#fff",
 			transform: `translate(${transX}%,0)`, //如果是返回则，往右移动，打开新页面时才往左移动
 			transition: "transform 0.4s"
 		});
@@ -80,6 +81,7 @@ export default {
 		elem.style.zIndex = null;
 		elem.style.transform = null;
 		elem.style.transition = null;
+		elem.style.backgroundColor = null;
 	},
 	onPageLeave(elem, done){//页面离开
 		$(elem).css({

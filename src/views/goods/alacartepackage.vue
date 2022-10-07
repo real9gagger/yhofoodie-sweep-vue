@@ -144,7 +144,7 @@
 		activated(){
 			if(this.appScrollTop){
 				//返回上次滚动到的地方，等页面切换动画执行完后再滚动
-				setTimeout(function(sTop){ $("#yhoapp").scrollTop(sTop) }, 450, this.appScrollTop);
+				setTimeout(function(sTop){ $("#yhoapp").scrollTop(sTop) }, 500, this.appScrollTop);
 			}
 		},
 		filters: {
@@ -193,6 +193,7 @@
 					this.packageInfo = pinfos;
 					this.isPack = false;
 					this.isSubmiting = false;
+					this.$store.commit("resetTextInputerValue");//清空备注输入
 					
 					if(fgCount){//如果有固定菜品，则重新计算总价
 						this.recalcPrice();

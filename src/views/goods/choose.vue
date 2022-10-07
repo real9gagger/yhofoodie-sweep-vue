@@ -46,7 +46,7 @@
 								<svg class="wh-1rem fi-99 va-t"><use xlink:href="#icon_beizhu1"></use></svg>
 								<span>{{item.goods_remarks | toGoodsRemark}}</span>
 							</p>
-							<counter-goods
+							<counter-goods class="mg-t-rem5"
 								:goods-count="item.goods_count" 
 								:goods-index="index"
 								:counter-title="item.total_price"

@@ -43,7 +43,7 @@
 	.skeleton-screen-container{
 		span.skeleton-item{/* 文本 */
 			display: inline-block;
-			border-radius: 6px;
+			border-radius: 8px;
 			vertical-align: middle;
 		}
 		.skeleton-item{

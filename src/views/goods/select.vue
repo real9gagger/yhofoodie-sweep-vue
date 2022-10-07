@@ -9,10 +9,10 @@
 				</a>
 			</div>
 		</div>
-		<div class="fx-r fx-g1 of-h">
+		<div class="fx-r fx-g1 of-h" v-if="shopGoods">
 			<div class="hi-f of-a bg-f0 ps-r of-no-sb" id="leftMenuContainer">
 				<ul class="select-left-menu">
-					<li v-for="item,index in shopGoods" :class="{activing: index === cateIndex}" :key="item.cate_key" @click="onCateClicked(index)">
+					<li v-for="item,index in shopGoods" :class="{activing: index === curCateIndex}" :key="item.cate_key" @click="onCateClicked(index)">
 						<i class="vertical-bar"></i>
 						<svg v-if="item.id==0"><use xlink:href="#icon_taocan1"></use></svg>
 						<svg v-else-if="item.id==1"><use xlink:href="#icon_tuijian"></use></svg>
@@ -23,36 +23,21 @@
 					</li>
 				</ul>
 			</div>
-			<div v-if="shopGoods" class="fx-g1 of-a ps-r" id="rightMenuContainer" @scroll="onGoodsScroll">
-				<template v-for="item,ix0 in shopGoods">
-					<h4 class="select-right-header" :key="item.id">{{item.goods_cate_name}}</h4>
-					<ul class="select-right-menu" :key="item.cate_key">
-						<li v-for="subitem,ix1 in item.goods_list" :key="subitem.goods_key">
-							<div class="fx-r" @click="onGoodsClicked($event, subitem)">
-								<goods-image :pic-src="subitem.goods_thumb" :goods-name="subitem.goods_name"></goods-image>
-								<div class="fx-g1 fx-c pd-l-rem5">
-									<p class="select-goods-name">{{subitem.goods_name}}</p>
-									<p class="pd-t-rem3 tc-99 fs-rem6" v-if="subitem.sales != 0">销量 {{subitem.sales}}</p>
-									<p class="pd-t-rem3 tc-99 fs-rem6" v-if="subitem.goods_material && subitem.goods_material.length <= 30">{{subitem.goods_material}}</p>
-									<p class="fx-g1"><!--占位专用--></p>
-									<p v-if="!item.isAvailableCate || subitem.status != 1" class="tc-99 fx-r">
-										<b>{{subitem.goods_price}}</b>
-										<span class="fx-g1 pd-l-rem5 ta-r">不在可售时间内</span>
-									</p>
-									<counter-goods v-else 
-										:goods-count="cartTotalInfo[item.cate_key + subitem.goods_key]" 
-										:cate-index="ix0"
-										:goods-index="ix1"
-										:multiple-choice="subitem.is_multiple_choice" 
-										:counter-title="subitem.goods_price"
-										@change="addToCart"></counter-goods>
-								</div>
-							</div>
-						</li>
-					</ul>
+			<sv-scroll class="fx-g1 of-a ps-r" 
+				ref="svScrollBox"
+				:goods-data="shopGoods"
+				@itemclick="onGoodsClicked"
+				@counterchange="addToCart"
+				@catechange="onCateChange"></sv-scroll>
+		</div>
+		<div v-else class="fx-r fx-g1 of-h">
+			<skeleton-screen :item-count="5" item-class="pd-lr-rem5" class="wi-5rem bg-f0 pd-tb-rem5">
+				<template #item>
+					<p class="mg-b-1rem hi-1rem br-5 bg-f9"></p>
+					<p class="mg-b-1rem hi-1rem br-5 bg-f9 wi-h"></p>
 				</template>
-			</div>
-			<skeleton-screen v-else :item-count="8" :animation-type="2" item-class="fx-r mg-b-1rem" class="fx-g1 pd-lr-rem5">
+			</skeleton-screen>
+			<skeleton-screen :item-count="10" :animation-type="2" item-class="fx-r mg-b-1rem" class="fx-g1 pd-lr-rem5">
 				<template #header>
 					<div class="pd-tb-rem25"><span class="skeleton-item wi-6rem"></span></div>
 				</template>
@@ -109,40 +94,34 @@
 	import * as goodsHelper from '@/apis/goods'
 	import yhoStore from '@/utils/yhostore'
 	import chooseGoods from './choose'
-	import counterGoods from './counter'
+	import svScroll from './selectvirtualscroll'
 	import alacarteGoods from './alacartegoods'
 	import backButton from '@/components/BackButton'
 	import skeletonScreen from '@/components/SkeletonScreen'
-	import goodsImage from '@/components/GoodsImage'
 	
 	export default {
 		name: "goodsSelect",
 		data(){
 			return {
 				shopGoods: null,
-				cateIndex: 0,
-				h4OffsetTops: [],
+				curCateIndex: 0,
 				liOffsetTops: [],
-				isSearchingCate: false,
-				isDontHandleScroll: false,//是否处理滚动事件
 				lastLeftScrollTop: 0,
-				lastRightScrollTop: 0,
 				alacarteBtn: null,//点击的按钮
 			}
 		},
 		computed:{
 			cateName(){
-				return (this.shopGoods[this.cateIndex].goods_cate_name || "");
+				return (this.shopGoods[this.curCateIndex].goods_cate_name || "");
 			},
 			...mapGetters(["cartTotalInfo"])
 		},
 		components: {
 			chooseGoods,
-			counterGoods,
+			svScroll,
 			alacarteGoods,
 			backButton,
-			skeletonScreen,
-			goodsImage
+			skeletonScreen
 		},
 		mounted() {
 			var $mine = this;
@@ -151,24 +130,22 @@
 				$mine.getOffsetTops();
 				//console.log(goods);
 			});
+			console.log(this)
 		},
 		deactivated(){//保存上次滚动到的地方
 			this.lastLeftScrollTop = $("#leftMenuContainer").scrollTop();
-			this.lastRightScrollTop = $("#rightMenuContainer").scrollTop();
 		},
 		activated(){
-			this.$nextTick(function(){ //返回上次滚动到的地方
-				$("#leftMenuContainer").scrollTop(this.lastLeftScrollTop);
-				$("#rightMenuContainer").scrollTop(this.lastRightScrollTop);
-			});
+			if(this.lastLeftScrollTop){
+				this.$nextTick(function(){ //返回上次滚动到的地方
+					$("#leftMenuContainer").scrollTop(this.lastLeftScrollTop);
+				});
+			}
 		},
 		methods:{
 			onCateClicked(idx){
-				this.cateIndex = idx;
-				this.isDontHandleScroll = true;
-				this.$nextTick(function(){
-					$("#rightMenuContainer").scrollTop(this.h4OffsetTops[this.cateIndex]);
-				});
+				this.curCateIndex = idx;
+				this.$refs.svScrollBox.setCateIndex(idx);
 			},
 			onGoodsClicked(evt, ginfos){
 				let imgWhRatio = 0;
@@ -186,6 +163,23 @@
 						cname: this.cateName
 					}
 				});
+			},
+			onCateChange(idx){
+				var $mine = this;
+				
+				$mine.curCateIndex = idx;
+				
+				let $leftbox = $("#leftMenuContainer");
+				let hei0 = $leftbox.height();
+				let hei1 = $leftbox.scrollTop();
+				let hei2 = $mine.liOffsetTops[idx];//当前
+				let hei3 = ($mine.liOffsetTops[idx + 1] || hei2) + 14; //加上一个调整值。下一个li元素的offsetTop（如果有，没有下一个元素就用当前的元素）
+				console.log(hei3, hei1, hei2, idx)
+				if(hei3 >= (hei0 + hei1)){//往下滚动
+					$leftbox.scrollTop(hei3 - hei0);
+				} else if(hei2 < hei1){
+					$leftbox.scrollTop(hei2);
+				}
 			},
 			checkGoodsStatus(goodsList){//检查菜品是否可售
 				let indexArr = [];
@@ -226,14 +220,13 @@
 			getOffsetTops(){
 				var $mine = this;
 				$mine.$nextTick(function(){
-					$mine.h4OffsetTops = []; //右边栏
-					$("#rightMenuContainer").children("h4").each(function(index, elem){
-						$mine.h4OffsetTops.push(elem.offsetTop);
-					});
+					let $leftBox = $("#leftMenuContainer");
 					$mine.liOffsetTops = []; //左边栏
-					$("#leftMenuContainer").children("ul").children().each(function(index, elem){
+					$leftBox.children("ul").children().each(function(index, elem){
 						$mine.liOffsetTops.push(elem.offsetTop);
 					});
+					$mine.liOffsetTops.push($leftBox.get(0).scrollHeight);
+					$mine.$refs.svScrollBox.initViewBox();
 				});
 			},
 			addToCart(arg0){
@@ -270,77 +263,8 @@
 					this.alacarteBtn = null;
 				}
 			},
-			onGoodsScroll(evt){
-				var $mine = this;
-				if($mine.isDontHandleScroll){
-					$mine.isDontHandleScroll = false;
-					return;
-				}
-				
-				if($mine.isSearchingCate){
-					return;
-				} else {
-					$mine.isSearchingCate = true;
-				}
-				
-				let elem = (evt.target || evt.srcElement);
-				let sTop = elem.scrollTop;
-				let cIndex = $mine.binarySearchIndex(0, $mine.h4OffsetTops.length - 1, sTop);
-				
-				if($mine.cateIndex !== cIndex && cIndex >= 0 && cIndex < $mine.shopGoods.length){
-					$mine.cateIndex = cIndex;
-					//自动滚动左边分类栏
-					let $leftbox = $("#leftMenuContainer");
-					let hei0 = $leftbox.height();
-					let hei1 = $leftbox.scrollTop();
-					let hei2 = $mine.liOffsetTops[cIndex];//当前
-					let hei3 = ($mine.liOffsetTops[cIndex + 1] || hei2) + 14; //加上一个调整值。下一个li元素的offsetTop（如果有，没有下一个元素就用当前的元素）
-					if(hei3 >= (hei0 + hei1)){
-						$leftbox.scrollTop(hei3 - hei0);
-					} else if(hei2 < hei1){
-						$leftbox.scrollTop(hei2);
-					}
-				}
-				
-				$mine.isSearchingCate = false;
-			},
 			showChooseList(){
 				this.$refs.chooseGBox.showList(this.cartTotalInfo.total_count);
-			},
-			binarySearchIndex(start, end, threshold){ //折半查找。
-				//原理：倒序查找到第一个 offsetTop 小于 scrollTop 的元素所在索引。
-				//这种方法耗时，用折半查找替代。
-				//满足条件的元素特征：offsetTop <= scrollTop 且 下一个元素的 offsetTop > scrollTop
-				var $mine = this;
-				if (end < 0 || end >= $mine.h4OffsetTops.length){
-					return 0;
-				}
-				
-				if(start < 0 || start >= end){
-					return end;
-				}
-				
-				let mid = Math.floor((start + end) / 2);
-				
-				if($mine.h4OffsetTops[mid] <= threshold){
-					if((mid + 1) <= end){
-						if($mine.h4OffsetTops[mid + 1] > threshold){
-							return mid;
-						} else {
-							return $mine.binarySearchIndex(mid + 1, end, threshold);
-						}
-					}
-				} else {
-					if((--mid) >= 0){						
-						if($mine.h4OffsetTops[mid] <= threshold){
-							return mid;
-						} else {
-							return $mine.binarySearchIndex(start, mid, threshold);
-						}
-					}
-				}
-				
-				return 0;
 			}
 		}
 	}
@@ -351,6 +275,7 @@
 		width: 5rem;
 		word-break: break-word;
 		white-space: pre-wrap;
+		overflow: hidden;
 		& > li{
 			padding: 0.5rem;
 			font-size: 0.7rem;
@@ -416,36 +341,7 @@
 			}
 		}
 	}
-	
-	.select-right-header{
-		padding: 0.25rem 0.5rem;
-		position: sticky;
-		top:0;
-		z-index:1;
-		background-color: #fff;
-	}
-	
-	.select-right-menu{
-		padding:0 0.5rem;
-		& > li{
-			margin-bottom: 1rem;
-			word-break: break-all;
-			transition: transform 0.25s;
-			&:active{
-				opacity: 0.6;
-			}
-		}
-	}
-	
-	.select-goods-name{
-		display: -webkit-box;
-		-webkit-line-clamp:2;
-		-webkit-box-orient:vertical;
-		overflow:hidden;
-		text-overflow: ellipsis;
-		font-weight: bold;
-	}
-	
+
 	.select-search-input{
 		border-radius: 1rem;
 		height: 1.8rem;

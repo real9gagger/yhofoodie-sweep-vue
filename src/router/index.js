@@ -87,11 +87,9 @@ let yhoRouter = new VueRouter({
 let historyPaths = "";
 let currentCName = "";//当前Vue控件名称
 
-function isFirstin(toPath){
+function isFirstin(){
 	if(!historyPaths){
-		vuexStore.commit("setIsRouterBack", null);
-		vuexStore.commit("clearKeepAliveExclude");
-		historyPaths = `,${toPath}`;
+		historyPaths = ",/home";
 		yhoStore.onceString("router_history_paths", historyPaths);
 		return true;
 	}
@@ -146,9 +144,9 @@ yhoRouter.beforeEach((to, from, next) => {
 	if(!historyPaths){
 		historyPaths = yhoStore.onceString("router_history_paths");
 	}
-	
-	if(isFirstin(to.path)){//首次进入
-		return !next("/home");
+
+	if(isFirstin()){//首次进入
+		return !next("/home");//重定向到首页
 	} else if(isRefresh(to.path)){//刷新
 		to.meta.keepAlive = true;
 	} else if(isReplace(to.fullPath, to.path)){//替换

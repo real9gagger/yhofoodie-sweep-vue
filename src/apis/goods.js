@@ -9,6 +9,7 @@ let tasteIDNameMap = null;
 let garnishIDNameMap = null;
 let goodsIDObjectMap = null;
 let nowDateTime = null; //避免频繁创建日期对象
+let loadingGoodsPromise = null;//是否正在加载菜品
 
 //初始化键值对
 function initKeyMaps(code){
@@ -173,25 +174,31 @@ export function getShopGoods(){
 			resolve(shopGoodsData);
 		});
 	} else {
-		return axios({
-			url: '/json/shop_goods_for_dev.json', 
-			//url: `${constVars.OSS_GOODS_PATH}${constVars.CURRENT_SHOP_ID}_${constVars.CURRENT_LANGE_TYPE}.json`,
-			method: "GET"
-		}).then(response => {
-			if(response && response.data){
-				shopGoodsData = handleGoodsList(response.data);
-			} else {
-				shopGoodsData = {
-					"list": [],
-					"garnish_list": [],
-					"package_list": [],
-					"spec_list": [],
-					"taste_list": []
-				};
-			}
-			yhoStore.onceObject("shop_goods_cache", shopGoodsData);//保存到缓存（会话级别）里，防止刷新丢失数据
-			return shopGoodsData;
-		});
+		if(!loadingGoodsPromise){
+			loadingGoodsPromise = axios({
+				url: '/json/shop_goods_for_dev.json', 
+				//url: `${constVars.OSS_GOODS_PATH}${constVars.CURRENT_SHOP_ID}_${constVars.CURRENT_LANGE_TYPE}.json`,
+				method: "GET"
+			}).then(response => {
+				if(response && response.data){
+					shopGoodsData = handleGoodsList(response.data);
+				} else {
+					shopGoodsData = {
+						"list": [],
+						"garnish_list": [],
+						"package_list": [],
+						"spec_list": [],
+						"taste_list": []
+					};
+				}
+				yhoStore.onceObject("shop_goods_cache", shopGoodsData);//保存到缓存（会话级别）里，防止刷新丢失数据
+				loadingGoodsPromise = null;
+				return shopGoodsData;
+			}).catch(() => {
+				loadingGoodsPromise = null;
+			});
+		}
+		return loadingGoodsPromise;
 	}
 };
 

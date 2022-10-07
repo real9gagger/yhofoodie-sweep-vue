@@ -32,8 +32,8 @@
 		computed:{
 			picUrl(){
 				if(this.picSrc){
-					//return "/image/waiter_happy.png"; //测试用
-					return (constVars.OSS_IMG_PATH + this.picSrc + constVars.OSS_IMG_SIZE_FOR_LIST);
+					return "/image/waiter_happy.png"; //测试用
+					//return (constVars.OSS_IMG_PATH + this.picSrc + constVars.OSS_IMG_SIZE_FOR_LIST);
 				} else {
 					return "";
 				}
