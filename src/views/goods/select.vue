@@ -26,7 +26,6 @@
 			<sv-scroll class="fx-g1 of-a ps-r" 
 				ref="svScrollBox"
 				:goods-data="shopGoods"
-				@itemclick="onGoodsClicked"
 				@counterchange="addToCart"
 				@catechange="onCateChange"></sv-scroll>
 		</div>
@@ -111,9 +110,6 @@
 			}
 		},
 		computed:{
-			cateName(){
-				return (this.shopGoods[this.curCateIndex].goods_cate_name || "");
-			},
 			...mapGetters(["cartTotalInfo"])
 		},
 		components: {
@@ -147,23 +143,6 @@
 				this.curCateIndex = idx;
 				this.$refs.svScrollBox.setCateIndex(idx);
 			},
-			onGoodsClicked(evt, ginfos){
-				let imgWhRatio = 0;
-				if(ginfos.goods_thumb){
-					imgWhRatio = getImageHwRatio($(evt.currentTarget).find("img").get(0));
-				}
-				
-				yhoStore.onceObject("selected_goods_infos", ginfos); //选中的菜品信息
-				
-				this.$router.push({
-					path: "/details",
-					query: {
-						gid: ginfos.id,
-						ratio: imgWhRatio,
-						cname: this.cateName
-					}
-				});
-			},
 			onCateChange(idx){
 				var $mine = this;
 				
@@ -174,7 +153,7 @@
 				let hei1 = $leftbox.scrollTop();
 				let hei2 = $mine.liOffsetTops[idx];//当前
 				let hei3 = ($mine.liOffsetTops[idx + 1] || hei2) + 14; //加上一个调整值。下一个li元素的offsetTop（如果有，没有下一个元素就用当前的元素）
-				console.log(hei3, hei1, hei2, idx)
+
 				if(hei3 >= (hei0 + hei1)){//往下滚动
 					$leftbox.scrollTop(hei3 - hei0);
 				} else if(hei2 < hei1){

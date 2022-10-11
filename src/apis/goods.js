@@ -209,7 +209,7 @@ export function getCateName(cid, defval){
 		}
 		let v_v = shopGoodsData.list[cateIDIndexMap[cid]];
 		if(v_v){
-			return (v_v.goods_cate_name || defval);
+			return (v_v.goods_cate_name || defval || "");
 		}
 	}
 	return defval;

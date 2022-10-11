@@ -9,15 +9,14 @@
 						<goods-image :pic-src="subitem.goods_thumb" :goods-name="subitem.goods_name"></goods-image>
 						<div class="fx-g1 fx-c pd-l-rem5">
 							<p class="svscroll-goods-name">{{subitem.goods_name}}</p>
-							<p class="pd-t-rem3 tc-99 fs-rem6" v-if="subitem.sales != 0">销量 {{subitem.sales}}</p>
-							<p class="pd-t-rem3 tc-99 fs-rem6" v-if="subitem.goods_material && subitem.goods_material.length <= 30">{{subitem.goods_material}}</p>
+							<p class="mg-t-rem2 tc-99 fs-rem6" v-if="subitem.sales != 0">销量 {{subitem.sales}}</p>
+							<p class="mg-t-rem2 tc-99 fs-rem6" v-if="subitem.goods_material && subitem.goods_material.length <= 30">{{subitem.goods_material}}</p>
 							<p class="fx-g1"><!--占位专用--></p>
-							<p v-if="!item.isAvailableCate || subitem.status != 1" class="tc-99 fx-r">
+							<p v-if="!item.isAvailableCate || subitem.status != 1" class="mg-t-rem2 tc-99 fx-r">
 								<b>{{subitem.goods_price}}</b>
 								<span class="fx-g1 pd-l-rem5 ta-r">不在可售时间内</span>
 							</p>
-							<counter-goods v-else 
-								class="mg-t-rem5"
+							<counter-goods v-else class="mg-t-rem2"
 								:goods-count="cartTotalInfo[item.cate_key + subitem.goods_key]" 
 								:cate-index="ix0"
 								:goods-index="ix1"
@@ -35,6 +34,7 @@
 
 <script>
 	import { mapGetters } from 'vuex'
+	import yhoStore from '@/utils/yhostore'
 	import counterGoods from './counter'
 	import goodsImage from '@/components/GoodsImage'
 
@@ -73,45 +73,55 @@
 				return (this.h4OffsetTops[this.startIndex] || 0);
 			},
 			offsetHeight2(){
-				let iLast = this.h4OffsetTops.length - 1;
-				if(this.endIndex >= iLast){
-					return 0;
-				} else if(this.endIndex < iLast){
+				if(this.endIndex < (this.h4OffsetTops.length - 1)){
 					return 1000;
 				} else {
 					return 0;
 				}
 			}
 		},
-		components:{
-			counterGoods,
-			goodsImage
-		},
+		components:{ counterGoods, goodsImage },
 		methods:{
 			initViewBox(){
 				var $mine = this;
-				setTimeout(function(){
+				setTimeout(function(){//延迟一小段时间，防止初次进入界面时卡顿。vue数据量太大（1000+条数据）会引起卡顿问题
 					$mine.endIndex = 88888888;
 					$mine.$nextTick(function(){
 						$mine.h4OffsetTops = [];
 						$("#rightMenuContainer").children("h4").each(function(index, h4dom){
 							$mine.h4OffsetTops.push(h4dom.offsetTop);
 						});
-						$mine.endIndex = this.getEndIndex(0);
+						$mine.endIndex = $mine.getEndIndex(0); //计算完各个框的高度后，还原。防止离开再返回时卡顿！
 					});
 				}, 800);
 			},
 			setCateIndex(idx){
 				this.curIndex = idx;
-				this.startIndex = (idx - 1);
+				this.startIndex = this.getStartIndex(idx);
 				this.endIndex = this.getEndIndex(idx);
 				this.isDontHandleScroll = true;
 				this.$nextTick(function(){
 					$("#rightMenuContainer").scrollTop(this.h4OffsetTops[this.curIndex]);
 				});
 			},
-			onItemClick(evt, vxo){
-				this.$emit("itemclick", evt, vxo);
+			onItemClick(evt, ginfos){
+				let imgWhRatio = 0;
+				let cateName = this.goodsData[this.curIndex].goods_cate_name;
+				
+				if(ginfos.goods_thumb){
+					imgWhRatio = getImageHwRatio($(evt.currentTarget).find("img").get(0));
+				}
+				
+				yhoStore.onceObject("selected_goods_infos", ginfos); //选中的菜品信息
+				
+				this.$router.push({
+					path: "/details",
+					query: {
+						gid: ginfos.id,
+						ratio: imgWhRatio,
+						cname: cateName
+					}
+				});
 			},
 			onCounterChange(params){
 				this.$emit("counterchange", params);
@@ -127,18 +137,21 @@
 					this.isFindingCate = true;
 				}
 				
-				let elem = (evt.currentTarget);
+				let elem = evt.currentTarget;
 				let sTop = elem.scrollTop;
-				
 				let cIndex = this.binarySearchIndex(this.startIndex, this.endIndex, sTop);
+
 				if(this.curIndex !== cIndex){
 					this.curIndex = cIndex;
-					this.startIndex = (cIndex - 1);
+					this.startIndex = this.getStartIndex(cIndex);
 					this.endIndex = this.getEndIndex(cIndex);
 					this.$emit("catechange", cIndex);
 				}
 				
 				this.isFindingCate = false;
+			},
+			getStartIndex(idx){//获取开始索引
+				return (idx > 1 ? idx - 1 : 0);
 			},
 			getEndIndex(idx){//获取至少累计有10个菜品的分类索引
 				let sums = 0;
