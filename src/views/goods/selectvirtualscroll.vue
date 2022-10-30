@@ -1,10 +1,14 @@
 <template>
 	<div @scroll="onBoxScrolling" id="rightMenuContainer">
+		<div class="svscroll-switcher-box">
+			<a v-if="viewMode === 2" @click="setViewMode(1)"><svg class="wh-1rem fi-66"><use xlink:href="#icon_listmode"></use></svg></a>
+			<a v-else @click="setViewMode(2)"><svg class="wh-1rem fi-66"><use xlink:href="#icon_flowmode"></use></svg></a>
+		</div>
 		<div :style="`height:${offsetHeight1}px`" title="虚拟滚动-顶部占位专用"></div>
 		<template v-for="item,ix0 in goodsData">
 			<template v-if="ix0 >= startIndex && ix0 <= endIndex">
 				<h4 class="svscroll-right-header" :key="item.id">{{item.goods_cate_name}}</h4>
-				<ul class="svscroll-right-menu" :key="item.cate_key">
+				<ul v-if="viewMode === 1" class="svscroll-right-menu" :key="item.cate_key">
 					<li v-for="subitem,ix1 in item.goods_list" :key="subitem.goods_key" @click="onItemClick($event, subitem)">
 						<goods-image :pic-src="subitem.goods_thumb" :goods-name="subitem.goods_name"></goods-image>
 						<div class="fx-g1 fx-c pd-l-rem5">
@@ -24,6 +28,26 @@
 								:counter-title="subitem.goods_price"
 								@change="onCounterChange"></counter-goods>
 						</div>
+					</li>
+				</ul>
+				<ul v-else class="svscroll-right-flowmode" :key="item.cate_key">
+					<li v-for="nth in goodsBoxCols" :style="flowModeWidth" :key="nth">
+						<template v-for="subitem,ix1 in item.goods_list">
+							<div v-if="isInCols(nth, ix1)" :key="subitem.goods_key" class="svscroll-flowmode-subitem" @click="onItemClick($event, subitem)">
+								<goods-image :pic-src="subitem.goods_thumb" :goods-name="subitem.goods_name" box-size="fill"></goods-image>
+								<p class="mg-t-rem2 pd-lr-rem3 fw-b">{{subitem.goods_name}}</p>
+								<p class="mg-t-rem2 pd-lr-rem3 tc-99 fs-rem6" v-if="subitem.sales != 0">销量 {{subitem.sales}}</p>
+								<p class="mg-t-rem2 pd-lr-rem3 tc-99 fs-rem6" v-if="subitem.goods_material && subitem.goods_material.length <= 30">{{subitem.goods_material}}</p>
+								<p v-if="!item.isAvailableCate || subitem.status != 1" class="mg-t-rem2 pd-lr-rem3 tc-99 ta-r">不在可售时间内</p>
+								<counter-goods v-else class="mg-t-rem2 pd-lr-rem3" count-class="wi-1rem5"
+									:goods-count="cartTotalInfo[item.cate_key + subitem.goods_key]" 
+									:cate-index="ix0"
+									:goods-index="ix1"
+									:multiple-choice="subitem.is_multiple_choice"
+									:counter-title="subitem.goods_price"
+									@change="onCounterChange"></counter-goods>
+							</div>
+						</template>
 					</li>
 				</ul>
 			</template>
@@ -46,9 +70,12 @@
 				startIndex: 0,
 				endIndex: 0,
 				lastScrollTop: 0,
+				viewMode: 1, //视图模式：1-列表模式（默认），2-瀑布流模式
 				isDontHandleScroll: false, //是否处理滚动事件
 				isFindingCate: false, //节流专用
-				h4OffsetTops: []
+				h4OffsetTops: [],
+				setTimeoutID: 0,
+				goodsBoxCols: 1
 			}
 		},
 		deactivated(){//保存上次滚动到的地方
@@ -60,6 +87,9 @@
 					$("#rightMenuContainer").scrollTop(this.lastScrollTop);
 				});
 			}
+		},
+		beforeDestroy(){
+			clearTimeout(this.setTimeoutID);
 		},
 		props:{
 			goodsData:{
@@ -74,26 +104,31 @@
 			},
 			offsetHeight2(){
 				if(this.endIndex < (this.h4OffsetTops.length - 1)){
-					return 1000;
+					return 500;
 				} else {
 					return 0;
 				}
+			},
+			flowModeWidth(){
+				return ("width:" + (100 / this.goodsBoxCols) + "%");
 			}
 		},
 		components:{ counterGoods, goodsImage },
 		methods:{
 			initViewBox(){
 				var $mine = this;
-				setTimeout(function(){//延迟一小段时间，防止初次进入界面时卡顿。vue数据量太大（1000+条数据）会引起卡顿问题
-					$mine.endIndex = 88888888;
+				var $rbox = $("#rightMenuContainer");
+				$rbox.scrollTop(0);
+				$mine.setTimeoutID = setTimeout(function(){//延迟一小段时间，防止初次进入界面时卡顿。vue数据量太大（1000+条数据）会引起卡顿问题
+					$mine.endIndex = 88888888;//全部显示，然后计算一些高度
 					$mine.$nextTick(function(){
 						$mine.h4OffsetTops = [];
-						$("#rightMenuContainer").children("h4").each(function(index, h4dom){
+						$rbox.children("h4").each(function(index, h4dom){
 							$mine.h4OffsetTops.push(h4dom.offsetTop);
 						});
 						$mine.endIndex = $mine.getEndIndex(0); //计算完各个框的高度后，还原。防止离开再返回时卡顿！
 					});
-				}, 800);
+				}, 750);
 			},
 			setCateIndex(idx){
 				this.curIndex = idx;
@@ -198,6 +233,41 @@
 				}
 				
 				return 0;
+			},
+			getBoxWidth(){//获取瀑布流模式每列的宽度（百分比），每行可以放下多少列
+				let ww = window.innerWidth;
+				if(ww <= 250){
+					this.goodsBoxCols = 1; //每行1列
+				} else if(ww <= 500){
+					this.goodsBoxCols = 2; //每行2列
+				} else if(ww <= 1000){
+					this.goodsBoxCols = 3; //每行3列
+				} else if(ww <= 1500){
+					this.goodsBoxCols = 4; //每行4列
+				} else if(ww <= 2000){
+					this.goodsBoxCols = 5; //每行5列
+				} else if(ww <= 2500){
+					this.goodsBoxCols = 6; //每行6列
+				} else if(ww <= 3000){
+					this.goodsBoxCols = 7; //每行7列
+				} else{//每行5列
+					this.goodsBoxCols = 8; //每行8列
+				}
+			},
+			isInCols(idx0, idx1){//是否在这一列中
+				return ((idx1 % this.goodsBoxCols + 1) === idx0);
+			},
+			setViewMode(typecode){
+				//this.curIndex = 0; //不能设置，否则无法触发 catechange 事件
+				this.startIndex = 0;
+				this.endIndex = 0;
+				if(typecode === 1){
+					this.viewMode = 1;
+				} else {
+					this.viewMode = 2;
+					this.getBoxWidth();
+				}
+				this.initViewBox();
 			}
 		}
 	}
@@ -221,7 +291,7 @@
 	}
 	.svscroll-right-menu{
 		padding:0 0.5rem;
-		& > li{
+		> li{
 			display:flex;
 			flex-direction: row;
 			margin-bottom: 1rem;
@@ -230,6 +300,36 @@
 			&:active{
 				opacity: 0.6;
 			}
+		}
+	}
+	.svscroll-right-flowmode{
+		display: flex;
+		flex-direction: row;
+		padding:0 0 0 0.5rem;
+		> li {
+			flex-grow: 1;
+			padding-right: 0.25rem;
+		}
+	}
+	.svscroll-flowmode-subitem{
+		border-radius: 0.5rem;
+		margin-bottom: 0.25rem;
+		padding-bottom: 0.5rem;
+		overflow: hidden;
+		background-color: #f3f3f3;
+		&:active{
+			opacity: 0.6;
+		}
+	}
+	.svscroll-switcher-box{
+		position: fixed;
+		top:auto;
+		right:0;
+		z-index:10;
+		> a{
+			display:block;
+			padding: 0.4rem 0.5rem;
+			line-height: 1;
 		}
 	}
 </style>

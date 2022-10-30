@@ -126,7 +126,7 @@
 				$mine.getOffsetTops();
 				//console.log(goods);
 			});
-			console.log(this)
+			//console.log(this)
 		},
 		deactivated(){//保存上次滚动到的地方
 			this.lastLeftScrollTop = $("#leftMenuContainer").scrollTop();
@@ -205,7 +205,7 @@
 						$mine.liOffsetTops.push(elem.offsetTop);
 					});
 					$mine.liOffsetTops.push($leftBox.get(0).scrollHeight);
-					$mine.$refs.svScrollBox.initViewBox();
+					$mine.$refs.svScrollBox.setViewMode(1);
 				});
 			},
 			addToCart(arg0){
@@ -228,9 +228,9 @@
 							} else {
 								this.$refs.alacarteGBox.showMe(ginfos);
 							}
-						} else if (arg0.newCount <= 0){//只有一份，直接删除
+						} /* else if (arg0.newCount <= 0){//只有一份，直接删除
 							this.$refs.chooseGBox.reduceGoods(ginfos.cate_key + ginfos.goods_key);
-						} else {
+						} */ else {
 							this.$refs.chooseGBox.showList(this.cartTotalInfo.total_count);
 						}
 					}
@@ -255,7 +255,7 @@
 		word-break: break-word;
 		white-space: pre-wrap;
 		overflow: hidden;
-		& > li{
+		> li{
 			padding: 0.5rem;
 			font-size: 0.7rem;
 			position: relative;

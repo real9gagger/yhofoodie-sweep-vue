@@ -64,9 +64,7 @@ var moduleA = {
 		},
 		addKeepAliveExclude(state, name){//添加排除项
 			if(name && state.keepAliveExclude.indexOf(name) < 0 ){
-				//console.log("加入前::::" + state.keepAliveExclude.join("|"))
 				state.keepAliveExclude.push(name);
-				//console.log("加入后::::" + state.keepAliveExclude.join("|"))
 			}
 		},
 		removeKeepAliveExclude(state, name){//移除排除项
