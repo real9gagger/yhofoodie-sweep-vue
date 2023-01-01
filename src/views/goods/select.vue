@@ -2,12 +2,7 @@
 	<div class="hi-f fx-c">
 		<div class="fx-hc pd-lr-rem5 bd-b-dd hi-2rem8">
 			<back-button title="T01"></back-button>
-			<div class="ps-r fx-g1 pd-l-1rem">
-				<input class="select-search-input" placeholder="想吃什么 搜一搜" type="search" autocomplete="off" />
-				<a class="ps-a po-t-c" style="right:0.5rem">
-					<svg class="wh-1rem fi-99"><use xlink:href="#icon_sousuo"></use></svg>
-				</a>
-			</div>
+            <search-box read-only class="pd-l-rem5"></search-box>
 		</div>
 		<div class="fx-r fx-g1 of-h" v-if="shopGoods">
 			<div class="hi-f of-a bg-f0 ps-r of-no-sb" id="leftMenuContainer">
@@ -96,6 +91,7 @@
 	import svScroll from './selectvirtualscroll'
 	import alacarteGoods from './alacartegoods'
 	import backButton from '@/components/BackButton'
+    import searchBox from '@/components/SearchBox'
 	import skeletonScreen from '@/components/SkeletonScreen'
 	
 	export default {
@@ -117,6 +113,7 @@
 			svScroll,
 			alacarteGoods,
 			backButton,
+            searchBox,
 			skeletonScreen
 		},
 		mounted() {
@@ -319,16 +316,6 @@
 				vertical-align: top;
 			}
 		}
-	}
-
-	.select-search-input{
-		border-radius: 1rem;
-		height: 1.7rem;
-		padding: 0 1rem;
-		width: 100%;
-		transition: width 0.5s;
-		background-color: #f0f0f0;
-		border: 0px solid $appMainColor;
 	}
 	
 	.select-bottom-container{
