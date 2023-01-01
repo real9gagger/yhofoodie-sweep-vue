@@ -1,9 +1,9 @@
 <template>
 	<div class="hi-f fx-c">
-		<div class="fx-hc pd-lr-rem5 bd-b-f0 hi-3rem">
+		<div class="fx-hc pd-lr-rem5 bd-b-dd hi-2rem8">
 			<back-button title="T01"></back-button>
 			<div class="ps-r fx-g1 pd-l-1rem">
-				<input class="select-search-input" placeholder="搜一搜" type="search" autocomplete="off" />
+				<input class="select-search-input" placeholder="想吃什么 搜一搜" type="search" autocomplete="off" />
 				<a class="ps-a po-t-c" style="right:0.5rem">
 					<svg class="wh-1rem fi-99"><use xlink:href="#icon_sousuo"></use></svg>
 				</a>
@@ -67,7 +67,7 @@
 					<span><i class="fs-rem6">RM&nbsp;</i><b class="fs-1rem2">{{cartTotalInfo.total_price}}</b></span>
 				</p>
 			</div>
-			<div class="hi-f wi-3rem">
+			<div class="hi-f wi-2rem8">
 				<svg class="wh-f">
 					<defs>
 						<linearGradient id="spath_lg001" x1="0%" y1="100%" x2="100%" y2="100%">
@@ -323,7 +323,7 @@
 
 	.select-search-input{
 		border-radius: 1rem;
-		height: 1.8rem;
+		height: 1.7rem;
 		padding: 0 1rem;
 		width: 100%;
 		transition: width 0.5s;
@@ -334,7 +334,7 @@
 	.select-bottom-container{
 		position: relative;
 		z-index: 10;
-		height: 3rem;
+		height: 2.8rem;
 		background-image: linear-gradient(90deg, #f88 50%, #f66 100%);
 		background-color: #fff;
 		> :first-child{
@@ -344,11 +344,11 @@
 	
 	.select-cart-box{
 		position: absolute;
-		width: 3rem;
-		height: 3rem;
+		width: 2.8rem;
+		height: 2.8rem;
 		left: 0.75rem;
 		background-color: $appMainColor;
-		top: -0.5rem;
+		top: -0.75rem;
 		z-index: 1;
 		border: 3px solid #fff;
 		border-radius: 50%;

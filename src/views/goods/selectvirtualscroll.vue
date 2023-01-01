@@ -305,15 +305,15 @@
 	.svscroll-right-flowmode{
 		display: flex;
 		flex-direction: row;
-		padding:0 0 0 0.5rem;
+		padding:0 0 0 0.3rem;
 		> li {
 			flex-grow: 1;
-			padding-right: 0.25rem;
+			padding-right: 0.3rem;
 		}
 	}
 	.svscroll-flowmode-subitem{
 		border-radius: 0.5rem;
-		margin-bottom: 0.25rem;
+		margin-bottom: 0.3rem;
 		padding-bottom: 0.5rem;
 		overflow: hidden;
 		background-color: #f3f3f3;

@@ -1,6 +1,6 @@
 <template>
 	<div v-if="packageInfo">
-		<div class="fx-hc hi-3rem bg-f6 pd-lr-rem5">
+		<div class="fx-hc hi-2rem8 bg-f0 pd-lr-rem5">
 			<back-button class="fx-g1 tc-66"></back-button>
 			<span class="fx-g6 ta-c">套餐选菜</span>
 			<a v-if="viewMode === 2" class="fx-g1 ta-r" @click="getBoxWidth(1)">
@@ -14,8 +14,8 @@
 			<goods-image :pic-src="packageInfo.goods_thumb" box-size="small"></goods-image>
 			<div class="fx-g1 pd-l-rem5">
 				<p class="fw-b fs-1rem">{{packageInfo.goods_name}}</p>
-				<p>
-					<svg class="wh-rem8 fi-99 va-tt"><use xlink:href="#icon_taocan2"></use></svg>
+				<p class="fs-rem6">
+					<svg class="wh-rem8 fi-99 va-t"><use xlink:href="#icon_taocan2"></use></svg>
 					<span class="tc-99 pd-l-rem1">套餐</span>
 				</p>
 				<p class="fx-hc" @click="gotoDesc()">

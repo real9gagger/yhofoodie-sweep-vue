@@ -104,12 +104,17 @@
 						<template v-for="item,index in goodsInfo.beizhu_list">
 							<a v-for="subitem,subindex in item.list"
 								class="alacarte-beizhu-box"
-								@click="selectGbz(index, subindex)" :key="subitem.id"
-								:class="{isfirst: subindex===0, islast: subindex===item.lastIndex, checked: subindex===item.selectIndex}"
-							>{{subitem.name}}</a>
+								@click="selectGbz(index, subindex)"
+                                :key="subitem.id"
+								:class="{
+                                    isfirst: subindex===0,
+                                    islast: subindex===item.lastIndex,
+                                    checked: subindex===item.selectIndex,
+                                }"><span v-if="subindex===0" class="bzgroupbox">{{item.name}}<em v-if="item.isRequired" class="tc-red">*</em></span>{{subitem.name}}</a>
 						</template>
 						<a class="alacarte-beizhu-box isfirst islast" 
-							@click="selectGbz(-1, -1)" :class="{checked: !!textInputerValue}"
+							@click="selectGbz(-1, -1)" 
+                            :class="{checked: !!textInputerValue}"
 						><svg class="wh-1em fi-66"><use xlink:href="#icon_edit1"></use></svg>&nbsp;{{textInputerValue || "自定义备注"}}</a>
 					</p>
 				</li>
@@ -212,7 +217,8 @@
 						for(let rid in newer.remarks){
 							let robj = getRemarkInfo(rid);
 							if(robj){
-								robj.selectIndex = -1;
+                                robj.isRequired = (newer.remarks[rid] == 1); //是否必选的备注
+                                robj.selectIndex = -1;//(robj.isRequired ? 0 : -1); //如果是必选，则默认选择第一个
 								newer.beizhu_list.push(robj);
 							}
 						}
@@ -406,7 +412,7 @@
 					}
 				}
 				
-				if(ginfos.beizhu_list){//用户选择的备注
+				if(this.beizhuCount > 0){//用户选择的备注
 					for(let bobj of ginfos.beizhu_list){
 						if(bobj.selectIndex >= 0){
 							let selbz = bobj.list[bobj.selectIndex];
@@ -491,13 +497,25 @@
 	}
 	.alacarte-beizhu-box{
 		display: inline-block;
-		margin-top: 0.5rem;
+		margin-top: 1rem;
 		margin-left: -1px;
 		border: 1px solid #dfdfdf;
 		vertical-align: top;
 		padding: 0.8rem;
 		background-color: #f3f3f3;
 		color: #333;
+        position: relative;
+        > .bzgroupbox {
+            position: absolute;
+            left: 0.3rem;
+            top: -0.6rem;
+            z-index: 1;
+            font-size: 0.6rem;
+            padding: 0rem 0.4rem;
+            background-color: #f3f3f3;
+            border-radius: 1rem;
+            border: 1px solid #dfdfdf;
+        }
 		&.isfirst{
 			border-top-left-radius: 0.4rem;
 			border-bottom-left-radius: 0.4rem;

@@ -304,25 +304,27 @@ export function isCateInSaleableTime(cateobj, ispack){
 	
 	if (ispack) {//套餐分类
 		if(isSaleable && cateobj.use_time && cateobj.use_time.length === 3){
-			if (isSaleable && cateobj.use_time[0].begin_time > 0 && cateobj.use_time[0].end_time > 0) {
+			if (cateobj.use_time[0].begin_time > 0 && cateobj.use_time[0].end_time > 0) {
 				isSaleable = isInTime(cateobj.use_time[0].begin_time, cateobj.use_time[0].end_time);
 			}
-			if (isSaleable && cateobj.use_time[1].begin_time1 > 0 && cateobj.use_time[1].end_time1 > 0) {
-				isSaleable = isInTime(cateobj.use_time[1].begin_time1, cateobj.use_time[1].end_time1);
+            //2022年10月27日 满足其中一个即可销售，不满足的才检查第二个，用【!isSaleable】而非【isSaleable】【！重要！】
+			if (!isSaleable && cateobj.use_time[1].begin_time > 0 && cateobj.use_time[1].end_time > 0) {
+				isSaleable = isInTime(cateobj.use_time[1].begin_time, cateobj.use_time[1].end_time);
 			}
-			if (isSaleable && cateobj.use_time[2].begin_time2 > 0 && cateobj.use_time[2].end_time2 > 0) {
-				isSaleable = isInTime(cateobj.use_time[2].begin_time2, cateobj.use_time[2].end_time2);
+			if (!isSaleable && cateobj.use_time[2].begin_time > 0 && cateobj.use_time[2].end_time > 0) {
+				isSaleable = isInTime(cateobj.use_time[2].begin_time, cateobj.use_time[2].end_time);
 			}
 		}
 	} else {//非套餐分类
 		if(isSaleable){
-			if (isSaleable && cateobj.begin_time > 0 && cateobj.end_time > 0) {
+			if (cateobj.begin_time > 0 && cateobj.end_time > 0) {
 				isSaleable = isInTime(cateobj.begin_time, cateobj.end_time);
 			}
-			if (isSaleable && cateobj.begin_time1 > 0 && cateobj.end_time1 > 0) {
+            //2022年10月27日 满足其中一个即可销售，不满足的才检查第二个，用【!isSaleable】而非【isSaleable】【！重要！】
+			if (!isSaleable && cateobj.begin_time1 > 0 && cateobj.end_time1 > 0) {
 				isSaleable = isInTime(cateobj.begin_time1, cateobj.end_time1);
 			}
-			if (isSaleable && cateobj.begin_time2 > 0 && cateobj.end_time2 > 0) {
+			if (!isSaleable && cateobj.begin_time2 > 0 && cateobj.end_time2 > 0) {
 				isSaleable = isInTime(cateobj.begin_time2, cateobj.end_time2);
 			}
 		}

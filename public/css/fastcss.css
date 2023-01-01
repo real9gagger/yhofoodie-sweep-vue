@@ -211,6 +211,8 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 .hi-1rem2{height:1.2rem}
 .hi-1rem5{height:1.5rem}
 .hi-2rem{height:2rem}
+.hi-2rem5{height:2.5rem}
+.hi-2rem8{height:2.8rem}
 .hi-3rem{height:3rem}
 .hi-4rem{height:4rem}
 .hi-5rem{height:5rem}
@@ -236,6 +238,8 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 .wi-1rem2{width:1.2rem}
 .wi-1rem5{width:1.5rem}
 .wi-2rem{width:2rem}
+.wi-2rem5{width:2.5rem}
+.wi-2rem8{width:2.8rem}
 .wi-3rem{width:3rem}
 .wi-4rem{width:4rem}
 .wi-5rem{width:5rem}
@@ -396,6 +400,9 @@ input[type="number"]{-moz-appearance:textfield /* firefox 去掉箭头 */}
 .bd-s{border:1px solid}
 .bd-mc{border:1px solid var(--main-color)}
 .bd-red{border:1px solid red}
+.bd-t-dd{border-top:1px solid #ddd}.bd-b-dd{border-bottom:1px solid #ddd}
+.bd-l-dd{border-left:1px solid #ddd}
+.bd-r-dd{border-right:1px solid #ddd}
 .bd-t-cc{border-top:1px solid #ccc}.bd-b-cc{border-bottom:1px solid #ccc}
 .bd-l-cc{border-left:1px solid #ccc}
 .bd-r-cc{border-right:1px solid #ccc}
