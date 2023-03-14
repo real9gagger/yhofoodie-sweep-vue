@@ -156,18 +156,18 @@ function formatDate(dateObj, formatStr) {
 	}
 	
     let ooo = [
-		["(y+)", dateObj.getFullYear()], //year
-        ["(M+)", dateObj.getMonth() + 1], //month
-        ["(d+)", dateObj.getDate()], //day
-        ["(h+)", dateObj.getHours()], //hour
-        ["(m+)", dateObj.getMinutes()], //minute
-        ["(s+)", dateObj.getSeconds()], //second
-        ["(q+)", Math.floor(dateObj.getMonth() / 3) + 1], //quarter
-        ["(S+)", dateObj.getMilliseconds()] //millisecond
+		[/(y+)/, dateObj.getFullYear()], //year
+        [/(M+)/, dateObj.getMonth() + 1], //month
+        [/(d+)/, dateObj.getDate()], //day
+        [/(h+)/, dateObj.getHours()], //hour
+        [/(m+)/, dateObj.getMinutes()], //minute
+        [/(s+)/, dateObj.getSeconds()], //second
+        [/(q+)/, Math.floor(dateObj.getMonth() / 3) + 1], //quarter
+        [/(S+)/, dateObj.getMilliseconds()] //millisecond
     ];
 	
     for (let arr of ooo) {
-        if (new RegExp(arr[0]).test(formatStr)) {
+        if (arr[0].test(formatStr)) {
 			let mat = RegExp.$1;
 			let val = arr[1].toString();
 			if(val.length >= mat.length){
@@ -183,8 +183,20 @@ function formatDate(dateObj, formatStr) {
 
 //格式化时间戳
 function formatTime(timeStamp, formatStr) {
-	let ts = (timeStamp * 1000) || 0;
-	return formatDate(new Date(ts), formatStr);
+	let ts = (timeStamp * 1000);
+    if(!ts){
+        return "";
+    } else {
+        return formatDate(new Date(ts), formatStr);
+    }
+}
+
+//格式化时间范围
+function formatRange(timeStamp1, timeStamp2, formatStr) {
+	let ts1 = (timeStamp1 instanceof Date ? timeStamp1 : new Date(timeStamp1 * 1000));
+    let ts2 = (timeStamp2 instanceof Date ? timeStamp2 : new Date(timeStamp2 * 1000));
+    
+	return formatDate(ts2, formatDate(ts1, formatStr));
 }
 
 //商品加到购物车抛物线动画
