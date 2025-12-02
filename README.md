@@ -7,6 +7,8 @@ NodeJS版本：14.17.6 或更高
 
 本演示版仅有前端代码，无后端代码。
 
+[在线演示](https://plyh.xyz/sweep_demo/dist/index.html)
+
 # 产品截图
 <kbd>
     <img alt="截图一" src="./public/screenshots/pic1.png" width="300" />
